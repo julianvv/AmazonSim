@@ -7,7 +7,6 @@
 </head>
 
 <body style="margin:0px;padding:0px;overflow:hidden;">
-
     <!--
         Deze pagina is de standaardpagina van de client. Hierin wordt de 3D wereld opgezet en wordt geluisterd
         naar updates vanaf de server over de websocket communicatie.
@@ -104,7 +103,7 @@
 
                             let robot = new THREE.Mesh(geometry, cubeMaterials);
                             robot.position.y = 0.15;
-
+                            robot.scale.set(6,6,6);
                             let group = new THREE.Group();
                             group.add(robot);
 
@@ -112,10 +111,11 @@
                             worldObjects[command.parameters.uuid] = group;
                         }
 
-                        if (command.parameters.type == "stellage") {
+                        if (command.parameters.type == "truck") {
                             worldObjects[command.parameters.uuid] = null;
-                            gltfLoader.load('./gltf/truck.glb', function ( gltf ) {
+                            gltfLoader.load('./gltf/truck1.glb', function ( gltf ) {
                                 let truck = gltf.scene;
+                                truck.scale.set(4,4,4);
                                 let group = new THREE.Group();
                                 group.add(truck);
 
@@ -126,12 +126,13 @@
 
                         if (command.parameters.type == "building") {
                             worldObjects[command.parameters.uuid] = null;
-                            gltfLoader.load('./gltf/warehouse.glb', function ( gltf ) {
+                            gltfLoader.load('./gltf/warehousev2.glb', function ( gltf ) {
                                 let warehouse = gltf.scene;
+                                warehouse.scale.set(6,6,6);
                                 let group = new THREE.Group();
                                 group.add(warehouse);
 
-                                scene.add(warehouse);
+                                scene.add(group);
                                 worldObjects[command.parameters.uuid] = group;
                             });
                         }
@@ -141,6 +142,7 @@
                      * Deze code wordt elke update uitgevoerd. Het update alle positiegegevens van het 3D object.
                      */
                     let object = worldObjects[command.parameters.uuid];
+
                     if(object != null){
                     object.position.x = command.parameters.x;
                     object.position.y = command.parameters.y;

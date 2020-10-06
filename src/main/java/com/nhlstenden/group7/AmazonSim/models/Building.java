@@ -19,8 +19,7 @@ public class Building implements Object3D, Updatable {
 
     public boolean update(){
 
-        this.x = 40;
-        this.y = 10;
+        this.y = 31;
         return true;
     }
 

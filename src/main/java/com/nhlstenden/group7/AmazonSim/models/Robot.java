@@ -6,7 +6,7 @@ public class Robot implements Object3D, Updatable{
     private UUID uuid;
 
     private double x = 0;
-    private double y = 0;
+    private double y = 1;
     private double z = 0;
 
     private double rotationX = 0;

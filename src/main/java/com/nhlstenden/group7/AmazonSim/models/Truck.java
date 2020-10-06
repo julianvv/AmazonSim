@@ -2,7 +2,7 @@ package com.nhlstenden.group7.AmazonSim.models;
 
 import java.util.UUID;
 
-public class Stellage implements Object3D, Updatable {
+public class Truck implements Object3D, Updatable {
     private UUID uuid;
 
     private double x = 0;
@@ -13,14 +13,15 @@ public class Stellage implements Object3D, Updatable {
     private double rotationY = 0;
     private double rotationZ = 0;
 
-    public Stellage(){
+    public Truck(){
         this.uuid = UUID.randomUUID();
     }
 
     public boolean update(){
 
-        this.x = 10;
-        this.y = 10;
+        this.x = 169;
+        this.y = 1;
+        this.z = 6;
         return true;
     }
 
@@ -31,7 +32,7 @@ public class Stellage implements Object3D, Updatable {
 
     @Override
     public String getType() {
-        return Stellage.class.getSimpleName().toLowerCase();
+        return Truck.class.getSimpleName().toLowerCase();
     }
 
     @Override
