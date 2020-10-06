@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Amazon Simulatie</title>
+    <link rel="stylesheet" href="./css/style.css">
+
 </head>
 
 <body style="margin:0px;padding:0px;overflow:hidden;">
@@ -15,16 +17,21 @@
     import * as THREE from "./three/build/three.module.js";
     import { OrbitControls } from "./three/examples/jsm/controls/OrbitControls.js";
     import { GLTFLoader } from './three/examples/jsm/loaders/GLTFLoader.js';
+    import { GUI } from './three/examples/jsm/libs/dat.gui.module.js';
+
+        const gltfLoader = new GLTFLoader();
+        const gui = new GUI();
+        let socket;
+
         function parseCommand(input = "") {
-            console.log(JSON.parse(input));
+
             return JSON.parse(input);
         }
-        let gltfLoader = new GLTFLoader();
-        var socket;
 
         window.onload = function () {
             let camera, scene, renderer;
             let cameraControls;
+            let stellageCounter = 1;
 
             let worldObjects = {};
 
@@ -124,6 +131,13 @@
                             });
                         }
 
+                        if (command.parameters.type == "stellage") {
+                            worldObjects[command.parameters.uuid] = null;
+                            let stellage = addStellage(stellageCounter, command.parameters.uuid);
+                            scene.add(stellage);
+                            worldObjects[command.parameters.uuid] = stellage;
+                        }
+
                         if (command.parameters.type == "building") {
                             worldObjects[command.parameters.uuid] = null;
                             gltfLoader.load('./gltf/warehousev2.glb', function ( gltf ) {
@@ -153,6 +167,28 @@
                     object.rotation.z = command.parameters.rotationZ;
                     }
                 }
+            }
+
+
+            function addStellage(counter, uuid) {
+                    let stellage;
+                    let group = new THREE.Group();
+                    gltfLoader.load('./gltf/stellage.glb', function (gltf){
+                        stellage = gltf.scene;
+                        stellage.scale.set(6,6,6);
+                        group.add(stellage);
+                    });
+                    console.log(stellage);
+                    const folder = gui.addFolder(`Stellage-${counter}`);
+                    let obj = { add:function (){
+                        console.log("clicked stellage-"+uuid);
+                        let message = '{"command":"move","uuid":"'+uuid+'"}';
+                        socket.send(message);
+                    }}
+                    folder.add(obj, 'add').name('Naar locatie');
+                    folder.close();
+                    stellageCounter++;
+                    return group;
             }
 
             init();
