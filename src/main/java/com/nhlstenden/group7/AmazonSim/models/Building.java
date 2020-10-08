@@ -5,6 +5,8 @@ import java.util.UUID;
 public class Building implements Object3D, Updatable {
     private UUID uuid;
 
+    private String status= "Being pretty";
+
     private double x = 0;
     private double y = 0;
     private double z = 0;
@@ -18,7 +20,7 @@ public class Building implements Object3D, Updatable {
     }
 
     public boolean update(){
-        this.y = 31;
+        this.y = 0;
         return true;
     }
 
@@ -60,5 +62,14 @@ public class Building implements Object3D, Updatable {
     @Override
     public double getRotationZ() {
         return this.rotationZ;
+    }
+
+    @Override
+    public String setStatus(String status){
+        return "Still being pretty";
+    }
+
+    public String getStatus(){
+        return this.status;
     }
 }

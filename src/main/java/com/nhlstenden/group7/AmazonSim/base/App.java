@@ -1,7 +1,9 @@
 package com.nhlstenden.group7.AmazonSim.base;
 
 import com.nhlstenden.group7.AmazonSim.controllers.Controller;
+import com.nhlstenden.group7.AmazonSim.controllers.RobotController;
 import com.nhlstenden.group7.AmazonSim.controllers.SimulationController;
+import com.nhlstenden.group7.AmazonSim.models.Object3D;
 import com.nhlstenden.group7.AmazonSim.models.World;
 import com.nhlstenden.group7.AmazonSim.views.DefaultWebSocketView;
 
@@ -23,6 +25,7 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.util.List;
 
 @Configuration
 @EnableAutoConfiguration
@@ -33,10 +36,19 @@ public class App extends SpringBootServletInitializer implements WebSocketConfig
         SpringApplication.run(App.class, args);
     }
 
+    private World world;
     private Controller controller;
+    private RobotController robotController;
+
+    public List<String> robotList;
 
     public App() {
-        this.controller = new SimulationController(new World());
+        this.world = new World();
+        for (Object3D Robot: world.getWorldObjectsAsList()) {
+            robotList.add(Robot.getUUID());
+        }
+
+        this.controller = new SimulationController(world);
         this.controller.start();
     }
 
@@ -65,10 +77,8 @@ public class App extends SpringBootServletInitializer implements WebSocketConfig
             JSONObject obj;
             try{
                 obj = (JSONObject) parser.parse(clientMessage);
-
                 String uuid = (String) obj.get("uuid");
-                System.out.println(uuid);
-
+                robotController = new RobotController(uuid, world);
             }catch (ParseException e){
                 System.out.println(e);
             };

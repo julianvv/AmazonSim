@@ -5,6 +5,8 @@ import java.util.UUID;
 public class Robot implements Object3D, Updatable{
     private UUID uuid;
 
+    private String status= "idle";
+
     private double x = 0;
     private double y = 1;
     private double z = 0;
@@ -18,6 +20,15 @@ public class Robot implements Object3D, Updatable{
     }
 
     public boolean update(){
+        if(status.equals("idle")){
+            return true;
+        }
+
+        if(status.equals("toDock")){
+
+            this.x = 20;
+            this.rotationY += (Math.PI * 2)/60;
+        }
         if(x <15){
             this.x += 0.5;
         }else{
@@ -64,5 +75,15 @@ public class Robot implements Object3D, Updatable{
     @Override
     public double getRotationZ() {
         return this.rotationZ;
+    }
+
+    @Override
+    public String setStatus(String status) {
+        this.status = status;
+        return "done";
+    }
+
+    public String getStatus(){
+        return this.status;
     }
 }

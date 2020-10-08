@@ -13,19 +13,19 @@ public class World implements Model{
 
     public World(){
         this.worldObjects = new ArrayList<>();
+        this.worldObjects.add(new Robot());
+        this.worldObjects.add(new Robot());
+        this.worldObjects.add(new Robot());
+        this.worldObjects.add(new Robot());
+        this.worldObjects.add(new Robot());
+        this.worldObjects.add(new Robot());
+        this.worldObjects.add(new Robot());
+        this.worldObjects.add(new Robot());
+        this.worldObjects.add(new Stellage());
+        this.worldObjects.add(new Stellage());
+        this.worldObjects.add(new Stellage());
         this.worldObjects.add(new Building());
-        this.worldObjects.add(new Robot());
-        this.worldObjects.add(new Robot());
-        this.worldObjects.add(new Robot());
-        this.worldObjects.add(new Robot());
-        this.worldObjects.add(new Robot());
-        this.worldObjects.add(new Robot());
-        this.worldObjects.add(new Robot());
-        this.worldObjects.add(new Robot());
         this.worldObjects.add(new Truck());
-        this.worldObjects.add(new Stellage());
-        this.worldObjects.add(new Stellage());
-        this.worldObjects.add(new Stellage());
     }
 
     @Override

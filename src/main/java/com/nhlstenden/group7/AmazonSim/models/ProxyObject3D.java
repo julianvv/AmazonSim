@@ -46,4 +46,13 @@ public class ProxyObject3D implements Object3D{
     public double getRotationZ() {
         return this.object.getRotationZ();
     }
+
+    public String setStatus(String status){
+        this.object.setStatus(status);
+        return "Status van "+this.object+": "+status;
+    }
+
+    public String getStatus(){
+        return this.object.getStatus();
+    }
 }

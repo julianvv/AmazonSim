@@ -18,55 +18,89 @@
     import { OrbitControls } from "./three/examples/jsm/controls/OrbitControls.js";
     import { GLTFLoader } from './three/examples/jsm/loaders/GLTFLoader.js';
     import { GUI } from './three/examples/jsm/libs/dat.gui.module.js';
+        let cameraControls, camera;
+        let scene, renderer;
+
+        const gui = new GUI();
+        const cameras = gui.addFolder('Camera\'s');
+        const stellages = gui.addFolder('Stellage\'s');
 
         const gltfLoader = new GLTFLoader();
-        const gui = new GUI();
+
         let socket;
 
         function parseCommand(input = "") {
-
+            console.log(JSON.parse(input));
             return JSON.parse(input);
         }
 
         window.onload = function () {
-            let camera, scene, renderer;
-            let cameraControls;
             let stellageCounter = 1;
 
             let worldObjects = {};
 
             function init() {
                 camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
-                camera.position.z = 15;
-                camera.position.y = 5;
                 camera.position.x = 15;
+                camera.position.y = 5;
+                camera.position.z = 15;
+
                 scene = new THREE.Scene();
+
+                const cubeLoader = new THREE.CubeTextureLoader();
+                const sbTexture = cubeLoader.load([
+                './textures/Skybox/side.png',
+                './textures/Skybox/side.png',
+                './textures/Skybox/top.png',
+                './textures/Skybox/bottom.png',
+                './textures/Skybox/side.png',
+                './textures/Skybox/side.png',
+                ]);
+
+                scene.background = sbTexture;
 
                 renderer = new THREE.WebGLRenderer({ antialias: true });
                 renderer.setPixelRatio(window.devicePixelRatio);
                 renderer.setSize(window.innerWidth, window.innerHeight + 5);
+                renderer.outputEncoding = THREE.sRGBEncoding;
+                renderer.shadowMapEnabled = true;
+                renderer.shadowMapType = THREE.PCFSoftShadowMap;
                 document.body.appendChild(renderer.domElement);
+
                 cameraControls = new OrbitControls(camera, renderer.domElement);
                 cameraControls.update();
                 window.addEventListener('resize', onWindowResize, false);
 
-                let geometry = new THREE.PlaneGeometry(120, 120, 32);
-                let material = new THREE.MeshBasicMaterial({ color: 0xF222ff, side: THREE.DoubleSide });
-                let plane = new THREE.Mesh(geometry, material);
-                plane.rotation.x = Math.PI / 2.0;
-                plane.position.x = 15;
-                plane.position.z = 15;
-                scene.add(plane);
-
                 let light = new THREE.AmbientLight(0x404040);
-                light.intensity = 4;
+                light.intensity = 1;
                 scene.add(light);
 
-                let pointLight = new THREE.PointLight(0xFFFFFF, 20);
-                pointLight.position.x = 15;
-                pointLight.position.y = 50;
-                pointLight.position.z = 40;
-                scene.add(pointLight);
+                let directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
+                directionalLight.position.x = 15;
+                directionalLight.position.y = 10;
+                directionalLight.position.z = 2;
+                directionalLight.castShadow = true;
+                //scene.add(directionalLight);
+
+                var spotLight	= new THREE.SpotLight( 0xFFAA88 );
+	            spotLight.position.x = 20;
+	            spotLight.position.y = 10;
+	            spotLight.position.z = 0;
+	            spotLight.target.position.set(15,2,0);
+	            spotLight.shadowCameraNear	= 0.01;
+	            spotLight.castShadow		= true;
+	            spotLight.shadowDarkness	= 0.5;
+	            spotLight.shadowCameraVisible	= true;
+                // console.dir(spotLight)
+                // spotLight.shadowMapWidth	= 1024;
+                // spotLight.shadowMapHeight	= 1024;
+	            scene.add( spotLight );
+
+                let pointLight1 = new THREE.PointLight(0xFFFFFF, 0.5);
+                pointLight1.position.x = 8;
+                pointLight1.position.y = 10;
+                //pointLight1.position.z = 0;
+                //scene.add(pointLight1);
             }
 
             function onWindowResize() {
@@ -76,9 +110,9 @@
             }
 
             function animate() {
-                requestAnimationFrame(animate);
                 cameraControls.update();
                 renderer.render(scene, camera);
+                requestAnimationFrame(animate);
             }
 
             /*
@@ -110,7 +144,6 @@
 
                             let robot = new THREE.Mesh(geometry, cubeMaterials);
                             robot.position.y = 0.15;
-                            robot.scale.set(6,6,6);
                             let group = new THREE.Group();
                             group.add(robot);
 
@@ -122,7 +155,8 @@
                             worldObjects[command.parameters.uuid] = null;
                             gltfLoader.load('./gltf/truck1.glb', function ( gltf ) {
                                 let truck = gltf.scene;
-                                truck.scale.set(4,4,4);
+                                truck.scale.set(2,2,2);
+                                truck.receiveShadow = true;
                                 let group = new THREE.Group();
                                 group.add(truck);
 
@@ -140,9 +174,9 @@
 
                         if (command.parameters.type == "building") {
                             worldObjects[command.parameters.uuid] = null;
-                            gltfLoader.load('./gltf/warehousev2.glb', function ( gltf ) {
+                            gltfLoader.load('./gltf/warehousemap.glb', function ( gltf ) {
                                 let warehouse = gltf.scene;
-                                warehouse.scale.set(6,6,6);
+                                warehouse.scale.set(50,50,50);
                                 let group = new THREE.Group();
                                 group.add(warehouse);
 
@@ -175,21 +209,34 @@
                     let group = new THREE.Group();
                     gltfLoader.load('./gltf/stellage.glb', function (gltf){
                         stellage = gltf.scene;
-                        stellage.scale.set(6,6,6);
                         group.add(stellage);
+                        group.receiveShadow = true;
                     });
-                    console.log(stellage);
-                    const folder = gui.addFolder(`Stellage-${counter}`);
+
+                    const subFolder = stellages.addFolder(`Stellage-${counter}`);
                     let obj = { add:function (){
                         console.log("clicked stellage-"+uuid);
                         let message = '{"command":"move","uuid":"'+uuid+'"}';
                         socket.send(message);
                     }}
-                    folder.add(obj, 'add').name('Naar locatie');
-                    folder.close();
+                    subFolder.add(obj, 'add').name('Naar locatie');
+                    subFolder.close();
                     stellageCounter++;
                     return group;
             }
+
+            let freeCamObj = { add:function (){
+                    cameraControls.enabled = true;
+                    console.log("Changed camera to Free Cam.");
+            }}
+            cameras.add(freeCamObj, 'add').name('Free cam');
+
+            let cam1Obj = { add:function (){
+                    cameraControls.enabled = false;
+                    console.log("Changed camera to Camera 1.");
+            }}
+            cameras.add(cam1Obj, 'add').name('Camera 1');
+
 
             init();
             animate();

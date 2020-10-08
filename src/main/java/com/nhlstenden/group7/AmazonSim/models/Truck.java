@@ -5,6 +5,8 @@ import java.util.UUID;
 public class Truck implements Object3D, Updatable {
     private UUID uuid;
 
+    private String status = "idle";
+
     private double x = 0;
     private double y = 0;
     private double z = 0;
@@ -19,7 +21,7 @@ public class Truck implements Object3D, Updatable {
 
     public boolean update(){
 
-        this.x = 169;
+        this.x = 10;
         this.y = 1;
         this.z = 6;
         return true;
@@ -63,5 +65,15 @@ public class Truck implements Object3D, Updatable {
     @Override
     public double getRotationZ() {
         return this.rotationZ;
+    }
+
+    @Override
+    public String setStatus(String status) {
+        this.status = status;
+        return "done";
+    }
+
+    public String getStatus(){
+        return this.status;
     }
 }

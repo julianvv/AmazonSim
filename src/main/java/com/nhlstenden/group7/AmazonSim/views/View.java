@@ -4,6 +4,6 @@ import com.nhlstenden.group7.AmazonSim.base.Command;
 import com.nhlstenden.group7.AmazonSim.models.Object3D;
 
 public interface View {
-    void update(String even, Object3D data);
+    void update(String event, Object3D data);
     void onViewClose(Command command);
 }
