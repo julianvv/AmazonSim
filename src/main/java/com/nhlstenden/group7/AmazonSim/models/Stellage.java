@@ -1,5 +1,6 @@
 package com.nhlstenden.group7.AmazonSim.models;
 
+import com.nhlstenden.group7.AmazonSim.base.App;
 import com.nhlstenden.group7.AmazonSim.controllers.RobotController;
 
 import java.util.UUID;
@@ -23,10 +24,15 @@ public class Stellage implements Object3D, Updatable{
     }
 
     public boolean update(){
-
+        if (status.equals("idle")){
+            return true;
+        }
         if(status.equals("toDock")){
+            closestRobot = (ProxyObject3D) App.getRobotList().get(0);
+            System.out.println(closestRobot);
             this.x = 20;
             this.rotationY += (Math.PI * 2)/60;
+            this.status = "idle";
         }
         return true;
     }

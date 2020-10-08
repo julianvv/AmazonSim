@@ -1,8 +1,7 @@
 package com.nhlstenden.group7.AmazonSim.models;
-
 import java.util.UUID;
 
-public class Robot implements Object3D, Updatable{
+public class Robot implements Object3D, Updatable {
     private UUID uuid;
 
     private String status= "idle";

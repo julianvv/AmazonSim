@@ -3,6 +3,7 @@ package com.nhlstenden.group7.AmazonSim.base;
 import com.nhlstenden.group7.AmazonSim.controllers.Controller;
 import com.nhlstenden.group7.AmazonSim.controllers.RobotController;
 import com.nhlstenden.group7.AmazonSim.controllers.SimulationController;
+import com.nhlstenden.group7.AmazonSim.models.Robot;
 import com.nhlstenden.group7.AmazonSim.models.Object3D;
 import com.nhlstenden.group7.AmazonSim.models.World;
 import com.nhlstenden.group7.AmazonSim.views.DefaultWebSocketView;
@@ -25,6 +26,7 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
@@ -40,16 +42,22 @@ public class App extends SpringBootServletInitializer implements WebSocketConfig
     private Controller controller;
     private RobotController robotController;
 
-    public List<String> robotList;
+    public static List<Object3D> robotList = new ArrayList<>();
 
     public App() {
         this.world = new World();
-        for (Object3D Robot: world.getWorldObjectsAsList()) {
-            robotList.add(Robot.getUUID());
+        for(Object3D object: world.getWorldObjectsAsList()) {
+            if(object.getType().equals("robot")){
+                robotList.add(object);
+            }
         }
 
         this.controller = new SimulationController(world);
         this.controller.start();
+    }
+
+    public static List<Object3D> getRobotList(){
+        return robotList;
     }
 
     @Override
