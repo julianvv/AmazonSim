@@ -1,35 +1,13 @@
 package com.nhlstenden.group7.AmazonSim.controllers;
 
-import com.nhlstenden.group7.AmazonSim.models.Object3D;
-import com.nhlstenden.group7.AmazonSim.models.ProxyObject3D;
-import com.nhlstenden.group7.AmazonSim.models.World;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.nhlstenden.group7.AmazonSim.models.Robot;
 
 public class RobotController {
-    private List<Object3D> objects;
+    private int f, g, h;
 
-    public RobotController(String uuid, World world){
-        System.out.println(uuid + " Onderweg");
-        objects = world.getWorldObjectsAsList();
-        int index = getModelIndex(uuid);
-        if(index != -1){
-            objects.get(index).setStatus("toDock");
-        }else{
-            System.out.println("Stellage niet gevonden...");
-        }
-
-
+    public RobotController(){
     }
 
-    private int getModelIndex(String uuid){
-        for(int i = 0; i < objects.size(); i ++){
-            String object = objects.get(i).getUUID();
-            if(object.equals(uuid)) {
-                return i;
-            }
-        }
-        return -1;
-    }
+
+
 }

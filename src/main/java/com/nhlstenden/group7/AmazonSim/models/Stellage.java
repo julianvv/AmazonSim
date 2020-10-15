@@ -1,7 +1,8 @@
 package com.nhlstenden.group7.AmazonSim.models;
 
+import com.nhlstenden.group7.AmazonSim.AStar.ClosestRobotPath;
 import com.nhlstenden.group7.AmazonSim.base.App;
-import com.nhlstenden.group7.AmazonSim.controllers.RobotController;
+import com.nhlstenden.group7.AmazonSim.controllers.StellageController;
 
 import java.util.UUID;
 
@@ -10,6 +11,7 @@ public class Stellage implements Object3D, Updatable{
     private String status = "idle";
     private ProxyObject3D closestRobot;
     private boolean robot;
+    private int distance;
 
     private double x = 0;
     private double y = 1;
@@ -28,10 +30,12 @@ public class Stellage implements Object3D, Updatable{
             return true;
         }
         if(status.equals("toDock")){
-            closestRobot = (ProxyObject3D) App.getRobotList().get(0);
-            System.out.println(closestRobot);
+            for(int i = 0; i < App.getRobotList().size(); i++){
+
+                System.out.println(ClosestRobotPath.SearchNodeTest2D(this, App.getRobotList().get(i)));
+            }
+
             this.x = 20;
-            this.rotationY += (Math.PI * 2)/60;
             this.status = "idle";
         }
         return true;

@@ -46,7 +46,11 @@
                 camera.position.z = 15;
 
                 scene = new THREE.Scene();
-
+                let gridHelper = new THREE.GridHelper(150, 100);
+                gridHelper.position.y = 16.5;
+                gridHelper.position.z =118;
+                gridHelper.position.x = -25;
+                scene.add(gridHelper);
                 const cubeLoader = new THREE.CubeTextureLoader();
                 const sbTexture = cubeLoader.load([
                 './textures/Skybox/side.png',
@@ -215,7 +219,6 @@
 
                     const subFolder = stellages.addFolder(`Stellage-${counter}`);
                     let obj = { add:function (){
-                        console.log("clicked stellage-"+uuid);
                         let message = '{"command":"move","uuid":"'+uuid+'"}';
                         socket.send(message);
                     }}

@@ -1,10 +1,11 @@
 package com.nhlstenden.group7.AmazonSim.base;
 
 import com.nhlstenden.group7.AmazonSim.controllers.Controller;
-import com.nhlstenden.group7.AmazonSim.controllers.RobotController;
 import com.nhlstenden.group7.AmazonSim.controllers.SimulationController;
+import com.nhlstenden.group7.AmazonSim.controllers.StellageController;
 import com.nhlstenden.group7.AmazonSim.models.Robot;
 import com.nhlstenden.group7.AmazonSim.models.Object3D;
+import com.nhlstenden.group7.AmazonSim.models.Stellage;
 import com.nhlstenden.group7.AmazonSim.models.World;
 import com.nhlstenden.group7.AmazonSim.views.DefaultWebSocketView;
 
@@ -40,8 +41,8 @@ public class App extends SpringBootServletInitializer implements WebSocketConfig
 
     private World world;
     private Controller controller;
-    private RobotController robotController;
 
+    public static List<Object3D> queue = new ArrayList<>();
     public static List<Object3D> robotList = new ArrayList<>();
 
     public App() {
@@ -86,7 +87,7 @@ public class App extends SpringBootServletInitializer implements WebSocketConfig
             try{
                 obj = (JSONObject) parser.parse(clientMessage);
                 String uuid = (String) obj.get("uuid");
-                robotController = new RobotController(uuid, world);
+                StellageController stellageController = new StellageController(uuid, world);
             }catch (ParseException e){
                 System.out.println(e);
             };
