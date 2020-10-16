@@ -22,6 +22,16 @@
     import {BloomPass} from "./three/examples/jsm/postprocessing/BloomPass.js";
     import {RenderPass} from "./three/examples/jsm/postprocessing/RenderPass.js";
     import {FilmPass} from "./three/examples/jsm/postprocessing/FilmPass.js";
+    import { saveCameraLocation } from "./saveLoadCamera.js";
+    import { loadCameraLocation } from "./saveLoadCamera.js";
+
+    let columns = 15;
+        let rows = 40;
+        let nodesize = 3;
+        let nodespace = 5;
+        let originx = 20;
+        let originz = 0;
+
         let cameraControls, camera;
         let scene, renderer;
         let currentCamera = "free";
@@ -49,11 +59,7 @@
                 camera.position.z = 15;
 
                 scene = new THREE.Scene();
-                let gridHelper = new THREE.GridHelper(150, 100);
-                gridHelper.position.y = 16.5;
-                gridHelper.position.z =118;
-                gridHelper.position.x = -25;
-                scene.add(gridHelper);
+
                 const cubeLoader = new THREE.CubeTextureLoader();
                 const sbTexture = cubeLoader.load([
                 './textures/Skybox/side.png',
@@ -206,14 +212,27 @@
 
                         if (command.parameters.type == "building") {
                             worldObjects[command.parameters.uuid] = null;
-                            gltfLoader.load('./gltf/warehousemap.glb', function ( gltf ) {
+                            gltfLoader.load('./gltf/warehousemapV2.glb', function ( gltf ) {
                                 let warehouse = gltf.scene;
                                 warehouse.scale.set(50,50,50);
-                                let group = new THREE.Group();
-                                group.add(warehouse);
+                                let warehouseObject = {
+                                    warehouse: warehouse,
+                                    oldStatus: warehouse.children[0].visible,
+                                    newStatus: function () {
+                                        if(this.oldStatus === false){
+                                            this.oldStatus = true;
+                                            warehouse.children[0].visible = true;
+                                        }else{
+                                            this.oldStatus = false;
+                                            warehouse.children[0].visible = false;
+                                        }
+                                    }
+                                }
 
-                                scene.add(group);
-                                worldObjects[command.parameters.uuid] = group;
+                                gui.add(warehouseObject, 'newStatus').name('Ceiling');
+                                scene.add(warehouse);
+                                console.log(warehouse);
+                                worldObjects[command.parameters.uuid] = warehouse;
                             });
                         }
                     }
@@ -260,49 +279,25 @@
                     cameraControls.enabled = true;
                     if (currentCamera != "free"){
                         currentCamera = "free";
-                        loadCameraLocation();
+                        loadCameraLocation(camera);
                     }
                     console.log("Changed camera to Free Cam.");
             }}
             cameras.add(freeCamObj, 'add').name('Free cam');
 
             let cam1Obj = { add:function (){
-                    saveCameraLocation();
+                    saveCameraLocation(camera);
                     cameraControls.enabled = false;
                     camera.position.x = -25;
                     camera.position.y = 16.5;
                     camera.position.z = 118;
-                    //camera.rotation.x = 0;
+                    camera.rotation.x = 0;
                     camera.rotation.y = -((Math.PI*2)/8);
                     camera.rotation.z = (Math.PI*2)/18;
                     currentCamera = "cam1";
                     console.log("Changed camera to Camera 1.");
             }}
             cameras.add(cam1Obj, 'add').name('Camera 1');
-
-            function saveCameraLocation() {
-
-                localStorage.setItem("camera.position.x", camera.position.x);
-                localStorage.setItem("camera.position.y", camera.position.y);
-                localStorage.setItem("camera.position.z", camera.position.z);
-
-                localStorage.setItem("camera.rotation.x", camera.rotation.x);
-                localStorage.setItem("camera.rotation.y", camera.rotation.y);
-                localStorage.setItem("camera.rotation.z", camera.rotation.z);
-            }
-
-            function loadCameraLocation(){
-
-                camera.position.x = parseFloat(localStorage.getItem("camera.position.x"));
-                camera.position.y = parseFloat(localStorage.getItem("camera.position.y"));
-                camera.position.z = parseFloat(localStorage.getItem("camera.position.z"));
-
-                camera.rotation.x = parseFloat(localStorage.getItem("camera.rotation.x"));
-                camera.rotation.y = parseFloat(localStorage.getItem("camera.rotation.y"));
-                camera.rotation.z = parseFloat(localStorage.getItem("camera.rotation.z"));
-
-                camera.updateProjectionMatrix();
-            }
 
             init();
             render();
@@ -326,6 +321,45 @@
             filmPass.renderToScreen = true;
             composer.addPass(filmPass);
 
+            function nodegrid(scene, columns, rows, nodesize, nodespace, originx, originz) {
+                for (let i = 0, a = originx, b = originz;i < (columns * rows);i = i) {
+
+                    if (a < (columns * nodespace)) {
+                        i++;
+                        let geometry = new THREE.BoxGeometry(nodesize, nodesize, nodesize);
+                        let material = new THREE.MeshBasicMaterial({color: 0xFFFFFF});
+                        let cube = new THREE.Mesh(geometry, material);
+                        cube.position.x = a;
+                        cube.position.z = b;
+                        scene.add(cube);
+                        a += nodespace;
+
+                    } else {
+                        a = originx;
+                        b += nodespace;
+                    }
+                }
+            }
+            nodegrid(scene, columns, rows, nodesize,nodespace,originx,originz);
+
+            let fontLoader = new THREE.FontLoader();
+            function generateText(text){
+                fontLoader.load( 'three/examples/fonts/helvetiker_regular.typeface.json', function ( font ) {
+
+                    let geometry = new THREE.TextGeometry( text, {
+                        font: font,
+                        size: 80,
+                        height: 5,
+                        curveSegments: 12,
+                        bevelEnabled: true,
+                        bevelThickness: 10,
+                        bevelSize: 8,
+                        bevelOffset: 0,
+                        bevelSegments: 5
+                    } );
+                } );
+            }
+            generateText("Kaas");
         }
     </script>
 </body>
