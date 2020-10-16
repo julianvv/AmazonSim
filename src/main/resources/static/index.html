@@ -18,9 +18,13 @@
     import { OrbitControls } from "./three/examples/jsm/controls/OrbitControls.js";
     import { GLTFLoader } from './three/examples/jsm/loaders/GLTFLoader.js';
     import { GUI } from './three/examples/jsm/libs/dat.gui.module.js';
+    import {EffectComposer} from "./three/examples/jsm/postprocessing/EffectComposer.js ";
+    import {BloomPass} from "./three/examples/jsm/postprocessing/BloomPass.js";
+    import {RenderPass} from "./three/examples/jsm/postprocessing/RenderPass.js";
+    import {FilmPass} from "./three/examples/jsm/postprocessing/FilmPass.js";
         let cameraControls, camera;
         let scene, renderer;
-
+        let currentCamera = "free";
         const gui = new GUI();
         const cameras = gui.addFolder('Camera\'s');
         const stellages = gui.addFolder('Stellage\'s');
@@ -30,7 +34,6 @@
         let socket;
 
         function parseCommand(input = "") {
-            console.log(JSON.parse(input));
             return JSON.parse(input);
         }
 
@@ -73,7 +76,6 @@
 
                 cameraControls = new OrbitControls(camera, renderer.domElement);
                 cameraControls.update();
-                window.addEventListener('resize', onWindowResize, false);
 
                 let light = new THREE.AmbientLight(0x404040);
                 light.intensity = 1;
@@ -107,16 +109,42 @@
                 //scene.add(pointLight1);
             }
 
-            function onWindowResize() {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
+            function resizeRendererToDisplaySize(renderer) {
+                const canvas = renderer.domElement;
+                const width = canvas.clientWidth;
+                const height = canvas.clientHeight;
+                const needResize = canvas.width !== width || canvas.height !== height;
+                if (needResize) {
+                    renderer.setSize(width, height, false);
+                }
+                return needResize;
             }
 
-            function animate() {
-                cameraControls.update();
-                renderer.render(scene, camera);
-                requestAnimationFrame(animate);
+
+
+            let then = 0;
+            function render(now) {
+                now *= 0.001;
+                let deltaTime = now - then;
+                then = now;
+                camera.updateProjectionMatrix();
+
+
+                if (resizeRendererToDisplaySize(renderer)) {
+                    const canvas = renderer.domElement;
+                    camera.aspect = canvas.clientWidth / canvas.clientHeight;
+                    camera.updateProjectionMatrix();
+                    composer.setSize(canvas.width, canvas.height);
+                    renderer.setSize(canvas.width, canvas.height);
+                }
+
+                if (currentCamera == "free"){
+                    renderer.render(scene, camera);
+                }
+                else{
+                    composer.render(deltaTime);
+                }
+                requestAnimationFrame(render);
             }
 
             /*
@@ -230,19 +258,74 @@
 
             let freeCamObj = { add:function (){
                     cameraControls.enabled = true;
+                    if (currentCamera != "free"){
+                        currentCamera = "free";
+                        loadCameraLocation();
+                    }
                     console.log("Changed camera to Free Cam.");
             }}
             cameras.add(freeCamObj, 'add').name('Free cam');
 
             let cam1Obj = { add:function (){
+                    saveCameraLocation();
                     cameraControls.enabled = false;
+                    camera.position.x = -25;
+                    camera.position.y = 16.5;
+                    camera.position.z = 118;
+                    //camera.rotation.x = 0;
+                    camera.rotation.y = -((Math.PI*2)/8);
+                    camera.rotation.z = (Math.PI*2)/18;
+                    currentCamera = "cam1";
                     console.log("Changed camera to Camera 1.");
             }}
             cameras.add(cam1Obj, 'add').name('Camera 1');
 
+            function saveCameraLocation() {
+
+                localStorage.setItem("camera.position.x", camera.position.x);
+                localStorage.setItem("camera.position.y", camera.position.y);
+                localStorage.setItem("camera.position.z", camera.position.z);
+
+                localStorage.setItem("camera.rotation.x", camera.rotation.x);
+                localStorage.setItem("camera.rotation.y", camera.rotation.y);
+                localStorage.setItem("camera.rotation.z", camera.rotation.z);
+            }
+
+            function loadCameraLocation(){
+
+                camera.position.x = parseFloat(localStorage.getItem("camera.position.x"));
+                camera.position.y = parseFloat(localStorage.getItem("camera.position.y"));
+                camera.position.z = parseFloat(localStorage.getItem("camera.position.z"));
+
+                camera.rotation.x = parseFloat(localStorage.getItem("camera.rotation.x"));
+                camera.rotation.y = parseFloat(localStorage.getItem("camera.rotation.y"));
+                camera.rotation.z = parseFloat(localStorage.getItem("camera.rotation.z"));
+
+                camera.updateProjectionMatrix();
+            }
 
             init();
-            animate();
+            render();
+
+            const composer = new EffectComposer(renderer);
+            composer.addPass(new RenderPass(scene,camera));
+            const bloomPass = new BloomPass(
+                1,    // strength
+                25,   // kernel size
+                4,    // sigma ?
+                256,  // blur render target resolution
+            );
+            composer.addPass(bloomPass);
+
+            const filmPass = new FilmPass(
+                0.35,   // noise intensity
+                0.025,  // scanline intensity
+                648,    // scanline count
+                false,  // grayscale
+            );
+            filmPass.renderToScreen = true;
+            composer.addPass(filmPass);
+
         }
     </script>
 </body>
