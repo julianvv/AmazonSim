@@ -24,18 +24,13 @@
     import {FilmPass} from "./three/examples/jsm/postprocessing/FilmPass.js";
     import { saveCameraLocation } from "./saveLoadCamera.js";
     import { loadCameraLocation } from "./saveLoadCamera.js";
+    import { nodegrid } from "./nodeGrid.js";
 
-    let columns = 15;
-        let rows = 40;
-        let nodesize = 3;
-        let nodespace = 5;
-        let originx = 20;
-        let originz = 0;
-
-        let cameraControls, camera;
+    let cameraControls, camera;
         let scene, renderer;
         let currentCamera = "free";
         const gui = new GUI();
+        const ceiling = gui.addFolder('Ceiling');
         const cameras = gui.addFolder('Camera\'s');
         const stellages = gui.addFolder('Stellage\'s');
 
@@ -168,6 +163,31 @@
                     //Wanneer het object dat moet worden geupdate nog niet bestaat (komt niet voor in de lijst met worldObjects op de client),
                     //dan wordt het 3D model eerst aangemaakt in de 3D wereld.
                     if (Object.keys(worldObjects).indexOf(command.parameters.uuid) < 0) {
+
+                        if (command.parameters.type == "building") {
+                            worldObjects[command.parameters.uuid] = null;
+                            gltfLoader.load('./gltf/warehousemapV2.glb', function ( gltf ) {
+                                let warehouse = gltf.scene;
+                                warehouse.scale.set(50,50,50);
+                                let warehouseObject = {
+                                    warehouse: warehouse,
+                                    ceilingStatus: warehouse.children[0].visible
+                                }
+
+                                ceiling.add(warehouseObject, 'ceilingStatus').name('Ceiling').onChange(function (){
+                                    if(warehouseObject.warehouse.children[0].visible){
+                                        warehouseObject.warehouse.children[0].visible = false;
+                                        console.log('ceiling becomes false');
+                                    }else{
+                                        warehouseObject.warehouse.children[0].visible = true;
+                                        console.log('ceiling becomes true');
+                                    }
+                                });
+                                scene.add(warehouse);
+                                console.log(warehouse);
+                                worldObjects[command.parameters.uuid] = warehouse;
+                            });
+                        }
                         //Wanneer het object een robot is, wordt de code hieronder uitgevoerd.
                         if (command.parameters.type == "robot") {
                             let geometry = new THREE.BoxGeometry(0.9, 0.3, 0.9);
@@ -208,32 +228,6 @@
                             let stellage = addStellage(stellageCounter, command.parameters.uuid);
                             scene.add(stellage);
                             worldObjects[command.parameters.uuid] = stellage;
-                        }
-
-                        if (command.parameters.type == "building") {
-                            worldObjects[command.parameters.uuid] = null;
-                            gltfLoader.load('./gltf/warehousemapV2.glb', function ( gltf ) {
-                                let warehouse = gltf.scene;
-                                warehouse.scale.set(50,50,50);
-                                let warehouseObject = {
-                                    warehouse: warehouse,
-                                    oldStatus: warehouse.children[0].visible,
-                                    newStatus: function () {
-                                        if(this.oldStatus === false){
-                                            this.oldStatus = true;
-                                            warehouse.children[0].visible = true;
-                                        }else{
-                                            this.oldStatus = false;
-                                            warehouse.children[0].visible = false;
-                                        }
-                                    }
-                                }
-
-                                gui.add(warehouseObject, 'newStatus').name('Ceiling');
-                                scene.add(warehouse);
-                                console.log(warehouse);
-                                worldObjects[command.parameters.uuid] = warehouse;
-                            });
                         }
                     }
 
@@ -288,12 +282,12 @@
             let cam1Obj = { add:function (){
                     saveCameraLocation(camera);
                     cameraControls.enabled = false;
-                    camera.position.x = -25;
-                    camera.position.y = 16.5;
-                    camera.position.z = 118;
-                    camera.rotation.x = 0;
+                    camera.position.x = -89;
+                    camera.position.y = 20;
+                    camera.position.z = 130;
+                    camera.rotation.x = -(Math.PI * 2)/10;
                     camera.rotation.y = -((Math.PI*2)/8);
-                    camera.rotation.z = (Math.PI*2)/18;
+                    camera.rotation.z = -(Math.PI*2)/15;
                     currentCamera = "cam1";
                     console.log("Changed camera to Camera 1.");
             }}
@@ -321,45 +315,12 @@
             filmPass.renderToScreen = true;
             composer.addPass(filmPass);
 
-            function nodegrid(scene, columns, rows, nodesize, nodespace, originx, originz) {
-                for (let i = 0, a = originx, b = originz;i < (columns * rows);i = i) {
-
-                    if (a < (columns * nodespace)) {
-                        i++;
-                        let geometry = new THREE.BoxGeometry(nodesize, nodesize, nodesize);
-                        let material = new THREE.MeshBasicMaterial({color: 0xFFFFFF});
-                        let cube = new THREE.Mesh(geometry, material);
-                        cube.position.x = a;
-                        cube.position.z = b;
-                        scene.add(cube);
-                        a += nodespace;
-
-                    } else {
-                        a = originx;
-                        b += nodespace;
-                    }
-                }
-            }
-            nodegrid(scene, columns, rows, nodesize,nodespace,originx,originz);
-
-            let fontLoader = new THREE.FontLoader();
-            function generateText(text){
-                fontLoader.load( 'three/examples/fonts/helvetiker_regular.typeface.json', function ( font ) {
-
-                    let geometry = new THREE.TextGeometry( text, {
-                        font: font,
-                        size: 80,
-                        height: 5,
-                        curveSegments: 12,
-                        bevelEnabled: true,
-                        bevelThickness: 10,
-                        bevelSize: 8,
-                        bevelOffset: 0,
-                        bevelSegments: 5
-                    } );
-                } );
-            }
-            generateText("Kaas");
+            let columns = 10;
+            let rows = 10;
+            let nodesize = 0.5;
+            let originx = -90;
+            let originz = -10;
+            nodegrid(columns, rows, nodesize,originx,originz, scene);
         }
     </script>
 </body>

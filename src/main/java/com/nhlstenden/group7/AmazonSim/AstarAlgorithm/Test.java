@@ -5,7 +5,7 @@ import java.util.List;
 public class Test {
     public static void main(String[] args){
         Node initialNode = new Node(0,0);
-        Node finalNode = new Node(12,8);
+        Node finalNode = new Node(13,0);
         int rows = 14;
         int cols = 10;
         Astar astar = new Astar(rows, cols, initialNode, finalNode);
@@ -27,13 +27,12 @@ public class Test {
     //5  -  -   -   -   -   *   -   -   -   -   -
     //6  -  -   -   -   -   *   -   -   -   -   -
     //7  -  -   -   -   -   *   -   -   -   -   -
-    //8  -  -   -   -   -   -   *   -   -   -   -
-    //9  -  -   -   -   -   -   -   -   -   -   -
-    //10 -  -   -   -   -   -   -   -   -   -   -
-    //11 -  -   -   -   -   -   -   B   B   -   -
-    //12 -  -   -   -   -   -   -   B   F   -   -
-    //13 -  -   -   -   -   -   -   B   -   -   -
-    //14 -  -   -   -   -   -   -   -   -   -   -
+    //8  -  -   -   -   -   *   -   -   -   -   -
+    //9  -  -   -   -   *   -   -   -   -   -   -
+    //10 -  -   -   *   -   -   -   -   -   -   -
+    //11 -  -   *   -   -   -   -   B   B   -   -
+    //12 -  *   -   -   -   -   -   B   -   -   -
+    //13 F  -   -   -   -   -   -   B   -   -   -
 
 
 }
