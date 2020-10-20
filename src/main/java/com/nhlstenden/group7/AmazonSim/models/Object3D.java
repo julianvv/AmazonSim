@@ -1,17 +1,28 @@
 package com.nhlstenden.group7.AmazonSim.models;
 
 public interface Object3D {
-    public String getUUID();
-    public String getType();
+    String getUUID();
+    String getType();
 
-    public double getX();
-    public abstract double getY();
-    public abstract double getZ();
+    double getX();
+    double getY();
+    double getZ();
 
-    public double getRotationX();
-    public double getRotationY();
-    public  double getRotationZ();
+    double getRotationX();
+    double getRotationY();
+    double getRotationZ();
+
+    void setX(double x);
+    void setY(double y);
+    void setZ(double z);
+
+    void setRotationX(double rotationX);
+    void setRotationY(double rotationY);
+    void setRotationZ(double rotationZ);
 
     public String setStatus(String status);
     public String getStatus();
+
+    void setLerp(double lerp);
+    double getLerp();
 }

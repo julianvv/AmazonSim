@@ -1,10 +1,13 @@
 package com.nhlstenden.group7.AmazonSim.models;
+import com.nhlstenden.group7.AmazonSim.AstarAlgorithm.Node;
+
+import java.util.List;
 import java.util.UUID;
 
 public class Robot implements Object3D, Updatable {
     private UUID uuid;
-
     private String status= "idle";
+    private double lerp = 0;
 
     private double x = 0;
     private double y = 1;
@@ -19,19 +22,8 @@ public class Robot implements Object3D, Updatable {
     }
 
     public boolean update(){
-        if(status.equals("idle")){
+        if(status.equals("idle") || status.equals("busy")){
             return true;
-        }
-
-        if(status.equals("toDock")){
-
-            this.x = 20;
-            this.rotationY += (Math.PI * 2)/60;
-        }
-        if(x <15){
-            this.x += 0.5;
-        }else{
-            this.rotationY += (Math.PI * 2)/60;
         }
         return true;
     }
@@ -62,6 +54,36 @@ public class Robot implements Object3D, Updatable {
     }
 
     @Override
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    @Override
+    public void setY(double y) {
+        this.y = y;
+    }
+
+    @Override
+    public void setZ(double z) {
+        this.z = z;
+    }
+
+    @Override
+    public void setRotationX(double rotationX) {
+        this.rotationX = x;
+    }
+
+    @Override
+    public void setRotationY(double rotationY) {
+        this.rotationY = rotationY;
+    }
+
+    @Override
+    public void setRotationZ(double rotationZ) {
+        this.rotationZ = rotationZ;
+    }
+
+    @Override
     public double getRotationX() {
         return this.rotationX;
     }
@@ -84,5 +106,15 @@ public class Robot implements Object3D, Updatable {
 
     public String getStatus(){
         return this.status;
+    }
+
+    @Override
+    public void setLerp(double lerp) {
+        this.lerp = lerp;
+    }
+
+    @Override
+    public double getLerp() {
+        return this.lerp;
     }
 }

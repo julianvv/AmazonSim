@@ -6,6 +6,7 @@ public class Truck implements Object3D, Updatable {
     private UUID uuid;
 
     private String status = "idle";
+    private double lerp = 0;
 
     private double x = 0;
     private double y = 0;
@@ -68,6 +69,36 @@ public class Truck implements Object3D, Updatable {
     }
 
     @Override
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    @Override
+    public void setY(double y) {
+        this.y = y;
+    }
+
+    @Override
+    public void setZ(double z) {
+        this.z = z;
+    }
+
+    @Override
+    public void setRotationX(double rotationX) {
+        this.rotationX = rotationX;
+    }
+
+    @Override
+    public void setRotationY(double rotationY) {
+        this.rotationY = rotationY;
+    }
+
+    @Override
+    public void setRotationZ(double rotationZ) {
+        this.rotationZ = rotationZ;
+    }
+
+    @Override
     public String setStatus(String status) {
         this.status = status;
         return "done";
@@ -75,5 +106,15 @@ public class Truck implements Object3D, Updatable {
 
     public String getStatus(){
         return this.status;
+    }
+
+    @Override
+    public void setLerp(double lerp) {
+        this.lerp = lerp;
+    }
+
+    @Override
+    public double getLerp() {
+        return this.lerp;
     }
 }

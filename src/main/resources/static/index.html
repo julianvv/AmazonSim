@@ -27,301 +27,308 @@
     import { nodegrid } from "./nodeGrid.js";
 
     let cameraControls, camera;
-        let scene, renderer;
-        let currentCamera = "free";
-        const gui = new GUI();
-        const ceiling = gui.addFolder('Ceiling');
-        const cameras = gui.addFolder('Camera\'s');
-        const stellages = gui.addFolder('Stellage\'s');
+    let scene, renderer;
+    let currentCamera = "free";
+    const gui = new GUI();
+    const ceiling = gui.addFolder('Ceiling');
+    const cameras = gui.addFolder('Camera\'s');
+    const stellages = gui.addFolder('Stellage\'s');
 
-        const gltfLoader = new GLTFLoader();
+    const gltfLoader = new GLTFLoader();
 
-        let socket;
+    let socket;
 
-        function parseCommand(input = "") {
-            return JSON.parse(input);
+    function parseCommand(input = "") {
+        return JSON.parse(input);
+    }
+
+    window.onload = function () {
+        let stellageCounter = 1;
+
+        let worldObjects = {};
+
+        function init() {
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
+            camera.position.x = 15;
+            camera.position.y = 5;
+            camera.position.z = 15;
+
+            scene = new THREE.Scene();
+
+            const cubeLoader = new THREE.CubeTextureLoader();
+            const sbTexture = cubeLoader.load([
+            './textures/Skybox/side.png',
+            './textures/Skybox/side.png',
+            './textures/Skybox/top.png',
+            './textures/Skybox/bottom.png',
+            './textures/Skybox/side.png',
+            './textures/Skybox/side.png',
+            ]);
+
+            scene.background = sbTexture;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight + 5);
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.shadowMapEnabled = true;
+            renderer.shadowMapType = THREE.PCFSoftShadowMap;
+            document.body.appendChild(renderer.domElement);
+
+            cameraControls = new OrbitControls(camera, renderer.domElement);
+            cameraControls.update();
+
+            let hemiLight = new THREE.HemisphereLight( 0xFF38D7, 0xFFA851, 0.2 );
+            scene.add(hemiLight);
+
+            let light = new THREE.AmbientLight(0x404040);
+            light.intensity = 2;
+            scene.add(light);
         }
 
-        window.onload = function () {
-            let stellageCounter = 1;
-
-            let worldObjects = {};
-
-            function init() {
-                camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
-                camera.position.x = 15;
-                camera.position.y = 5;
-                camera.position.z = 15;
-
-                scene = new THREE.Scene();
-
-                const cubeLoader = new THREE.CubeTextureLoader();
-                const sbTexture = cubeLoader.load([
-                './textures/Skybox/side.png',
-                './textures/Skybox/side.png',
-                './textures/Skybox/top.png',
-                './textures/Skybox/bottom.png',
-                './textures/Skybox/side.png',
-                './textures/Skybox/side.png',
-                ]);
-
-                scene.background = sbTexture;
-
-                renderer = new THREE.WebGLRenderer({ antialias: true });
-                renderer.setPixelRatio(window.devicePixelRatio);
-                renderer.setSize(window.innerWidth, window.innerHeight + 5);
-                renderer.outputEncoding = THREE.sRGBEncoding;
-                renderer.shadowMapEnabled = true;
-                renderer.shadowMapType = THREE.PCFSoftShadowMap;
-                document.body.appendChild(renderer.domElement);
-
-                cameraControls = new OrbitControls(camera, renderer.domElement);
-                cameraControls.update();
-
-                let light = new THREE.AmbientLight(0x404040);
-                light.intensity = 1;
-                scene.add(light);
-
-                let directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1);
-                directionalLight.position.x = 15;
-                directionalLight.position.y = 10;
-                directionalLight.position.z = 2;
-                directionalLight.castShadow = true;
-                //scene.add(directionalLight);
-
-                var spotLight	= new THREE.SpotLight( 0xFFAA88 );
-	            spotLight.position.x = 20;
-	            spotLight.position.y = 10;
-	            spotLight.position.z = 0;
-	            spotLight.target.position.set(15,2,0);
-	            spotLight.shadowCameraNear	= 0.01;
-	            spotLight.castShadow		= true;
-	            spotLight.shadowDarkness	= 0.5;
-	            spotLight.shadowCameraVisible	= true;
-                // console.dir(spotLight)
-                // spotLight.shadowMapWidth	= 1024;
-                // spotLight.shadowMapHeight	= 1024;
-	            scene.add( spotLight );
-
-                let pointLight1 = new THREE.PointLight(0xFFFFFF, 0.5);
-                pointLight1.position.x = 8;
-                pointLight1.position.y = 10;
-                //pointLight1.position.z = 0;
-                //scene.add(pointLight1);
+        function resizeRendererToDisplaySize(renderer) {
+            const canvas = renderer.domElement;
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            const needResize = canvas.width !== width || canvas.height !== height;
+            if (needResize) {
+                renderer.setSize(width, height, false);
             }
+            return needResize;
+        }
 
-            function resizeRendererToDisplaySize(renderer) {
+
+
+        let then = 0;
+        function render(now) {
+            now *= 0.001;
+            let deltaTime = now - then;
+            then = now;
+            camera.updateProjectionMatrix();
+
+
+            if (resizeRendererToDisplaySize(renderer)) {
                 const canvas = renderer.domElement;
-                const width = canvas.clientWidth;
-                const height = canvas.clientHeight;
-                const needResize = canvas.width !== width || canvas.height !== height;
-                if (needResize) {
-                    renderer.setSize(width, height, false);
-                }
-                return needResize;
-            }
-
-
-
-            let then = 0;
-            function render(now) {
-                now *= 0.001;
-                let deltaTime = now - then;
-                then = now;
+                camera.aspect = canvas.clientWidth / canvas.clientHeight;
                 camera.updateProjectionMatrix();
-
-
-                if (resizeRendererToDisplaySize(renderer)) {
-                    const canvas = renderer.domElement;
-                    camera.aspect = canvas.clientWidth / canvas.clientHeight;
-                    camera.updateProjectionMatrix();
-                    composer.setSize(canvas.width, canvas.height);
-                    renderer.setSize(canvas.width, canvas.height);
-                }
-
-                if (currentCamera == "free"){
-                    renderer.render(scene, camera);
-                }
-                else{
-                    composer.render(deltaTime);
-                }
-                requestAnimationFrame(render);
+                composer.setSize(canvas.width, canvas.height);
+                renderer.setSize(canvas.width, canvas.height);
             }
 
-            /*
-             * Hier wordt de socketcommunicatie geregeld. Er wordt een nieuwe websocket aangemaakt voor het webadres dat we in
-             * de server geconfigureerd hebben als connectiepunt (/connectToSimulation). Op de socket wordt een .onmessage
-             * functie geregistreerd waarmee binnenkomende berichten worden afgehandeld.
-             */
-            socket = new WebSocket("ws://" + window.location.hostname + ":" + window.location.port + "/connectToSimulation");
-            socket.onmessage = function (event) {
-                //Hier wordt het commando dat vanuit de server wordt gegeven uit elkaar gehaald
-                let command = parseCommand(event.data);
-
-                //Wanneer het commando is "object_update", dan wordt deze code uitgevoerd. Bekijk ook de servercode om dit goed te begrijpen.
-                if (command.command == "object_update") {
-                    //Wanneer het object dat moet worden geupdate nog niet bestaat (komt niet voor in de lijst met worldObjects op de client),
-                    //dan wordt het 3D model eerst aangemaakt in de 3D wereld.
-                    if (Object.keys(worldObjects).indexOf(command.parameters.uuid) < 0) {
-
-                        if (command.parameters.type == "building") {
-                            worldObjects[command.parameters.uuid] = null;
-                            gltfLoader.load('./gltf/warehousemapV2.glb', function ( gltf ) {
-                                let warehouse = gltf.scene;
-                                warehouse.scale.set(50,50,50);
-                                let warehouseObject = {
-                                    warehouse: warehouse,
-                                    ceilingStatus: warehouse.children[0].visible
-                                }
-
-                                ceiling.add(warehouseObject, 'ceilingStatus').name('Ceiling').onChange(function (){
-                                    if(warehouseObject.warehouse.children[0].visible){
-                                        warehouseObject.warehouse.children[0].visible = false;
-                                        console.log('ceiling becomes false');
-                                    }else{
-                                        warehouseObject.warehouse.children[0].visible = true;
-                                        console.log('ceiling becomes true');
-                                    }
-                                });
-                                scene.add(warehouse);
-                                console.log(warehouse);
-                                worldObjects[command.parameters.uuid] = warehouse;
-                            });
-                        }
-                        //Wanneer het object een robot is, wordt de code hieronder uitgevoerd.
-                        if (command.parameters.type == "robot") {
-                            let geometry = new THREE.BoxGeometry(0.9, 0.3, 0.9);
-                            let cubeMaterials = [
-                                new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/robot_side.png"), side: THREE.DoubleSide }), //LEFT
-                                new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/robot_side.png"), side: THREE.DoubleSide }), //RIGHT
-                                new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/robot_top.png"), side: THREE.DoubleSide }), //TOP
-                                new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/robot_bottom.png"), side: THREE.DoubleSide }), //BOTTOM
-                                new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/robot_front.png"), side: THREE.DoubleSide }), //FRONT
-                                new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/robot_front.png"), side: THREE.DoubleSide }), //BACK
-                            ];
-
-                            let robot = new THREE.Mesh(geometry, cubeMaterials);
-                            robot.position.y = 0.15;
-                            let group = new THREE.Group();
-                            group.add(robot);
-
-                            scene.add(group);
-                            worldObjects[command.parameters.uuid] = group;
-                        }
-
-                        if (command.parameters.type == "truck") {
-                            worldObjects[command.parameters.uuid] = null;
-                            gltfLoader.load('./gltf/truck1.glb', function ( gltf ) {
-                                let truck = gltf.scene;
-                                truck.scale.set(2,2,2);
-                                truck.receiveShadow = true;
-                                let group = new THREE.Group();
-                                group.add(truck);
-
-                                scene.add(group);
-                                worldObjects[command.parameters.uuid] = group;
-                            });
-                        }
-
-                        if (command.parameters.type == "stellage") {
-                            worldObjects[command.parameters.uuid] = null;
-                            let stellage = addStellage(stellageCounter, command.parameters.uuid);
-                            scene.add(stellage);
-                            worldObjects[command.parameters.uuid] = stellage;
-                        }
-                    }
-
-                    /*
-                     * Deze code wordt elke update uitgevoerd. Het update alle positiegegevens van het 3D object.
-                     */
-                    let object = worldObjects[command.parameters.uuid];
-
-                    if(object != null){
-                    object.position.x = command.parameters.x;
-                    object.position.y = command.parameters.y;
-                    object.position.z = command.parameters.z;
-
-                    object.rotation.x = command.parameters.rotationX;
-                    object.rotation.y = command.parameters.rotationY;
-                    object.rotation.z = command.parameters.rotationZ;
-                    }
-                }
+            if (currentCamera == "free"){
+                renderer.render(scene, camera);
             }
-
-
-            function addStellage(counter, uuid) {
-                    let stellage;
-                    let group = new THREE.Group();
-                    gltfLoader.load('./gltf/stellage.glb', function (gltf){
-                        stellage = gltf.scene;
-                        group.add(stellage);
-                        group.receiveShadow = true;
-                    });
-
-                    const subFolder = stellages.addFolder(`Stellage-${counter}`);
-                    let obj = { add:function (){
-                        let message = '{"command":"move","uuid":"'+uuid+'"}';
-                        socket.send(message);
-                    }}
-                    subFolder.add(obj, 'add').name('Naar locatie');
-                    subFolder.close();
-                    stellageCounter++;
-                    return group;
+            else{
+                composer.render(deltaTime);
             }
-
-            let freeCamObj = { add:function (){
-                    cameraControls.enabled = true;
-                    if (currentCamera != "free"){
-                        currentCamera = "free";
-                        loadCameraLocation(camera);
-                    }
-                    console.log("Changed camera to Free Cam.");
-            }}
-            cameras.add(freeCamObj, 'add').name('Free cam');
-
-            let cam1Obj = { add:function (){
-                    saveCameraLocation(camera);
-                    cameraControls.enabled = false;
-                    camera.position.x = -89;
-                    camera.position.y = 20;
-                    camera.position.z = 130;
-                    camera.rotation.x = -(Math.PI * 2)/10;
-                    camera.rotation.y = -((Math.PI*2)/8);
-                    camera.rotation.z = -(Math.PI*2)/15;
-                    currentCamera = "cam1";
-                    console.log("Changed camera to Camera 1.");
-            }}
-            cameras.add(cam1Obj, 'add').name('Camera 1');
-
-            init();
-            render();
-
-            const composer = new EffectComposer(renderer);
-            composer.addPass(new RenderPass(scene,camera));
-            const bloomPass = new BloomPass(
-                1,    // strength
-                25,   // kernel size
-                4,    // sigma ?
-                256,  // blur render target resolution
-            );
-            composer.addPass(bloomPass);
-
-            const filmPass = new FilmPass(
-                0.35,   // noise intensity
-                0.025,  // scanline intensity
-                648,    // scanline count
-                false,  // grayscale
-            );
-            filmPass.renderToScreen = true;
-            composer.addPass(filmPass);
-
-            let columns = 10;
-            let rows = 10;
-            let nodesize = 0.5;
-            let originx = -90;
-            let originz = -10;
-            nodegrid(columns, rows, nodesize,originx,originz, scene);
+            requestAnimationFrame(render);
         }
+
+        /*
+         * Hier wordt de socketcommunicatie geregeld. Er wordt een nieuwe websocket aangemaakt voor het webadres dat we in
+         * de server geconfigureerd hebben als connectiepunt (/connectToSimulation). Op de socket wordt een .onmessage
+         * functie geregistreerd waarmee binnenkomende berichten worden afgehandeld.
+         */
+        socket = new WebSocket("ws://" + window.location.hostname + ":" + window.location.port + "/connectToSimulation");
+        socket.onmessage = function (event) {
+            //Hier wordt het commando dat vanuit de server wordt gegeven uit elkaar gehaald
+            let command = parseCommand(event.data);
+
+            //Wanneer het commando is "object_update", dan wordt deze code uitgevoerd. Bekijk ook de servercode om dit goed te begrijpen.
+            if (command.command == "object_update") {
+                //Wanneer het object dat moet worden geupdate nog niet bestaat (komt niet voor in de lijst met worldObjects op de client),
+                //dan wordt het 3D model eerst aangemaakt in de 3D wereld.
+                if (Object.keys(worldObjects).indexOf(command.parameters.uuid) < 0) {
+
+                    if (command.parameters.type == "building") {
+                        worldObjects[command.parameters.uuid] = null;
+                        gltfLoader.load('./gltf/warehousemapV2.glb', function ( gltf ) {
+                            let warehouse = gltf.scene;
+                            warehouse.scale.set(50,50,50);
+                            let warehouseObject = {
+                                warehouse: warehouse,
+                                ceilingStatus: warehouse.children[0].visible
+                            }
+
+                            ceiling.add(warehouseObject, 'ceilingStatus').name('Ceiling').onChange(function (){
+                                if(warehouseObject.warehouse.children[0].visible){
+                                    warehouseObject.warehouse.children[0].visible = false;
+                                    console.log('ceiling becomes false');
+                                }else{
+                                    warehouseObject.warehouse.children[0].visible = true;
+                                    console.log('ceiling becomes true');
+                                }
+                            });
+                            scene.add(warehouse);
+                            console.log(warehouse);
+                            worldObjects[command.parameters.uuid] = warehouse;
+                        });
+                    }
+                    //Wanneer het object een robot is, wordt de code hieronder uitgevoerd.
+                    if (command.parameters.type == "robot") {
+                        let geometry = new THREE.BoxGeometry(0.9, 0.3, 0.9);
+                        let cubeMaterials = [
+                            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/robot_side.png"), side: THREE.DoubleSide }), //LEFT
+                            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/robot_side.png"), side: THREE.DoubleSide }), //RIGHT
+                            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/robot_top.png"), side: THREE.DoubleSide }), //TOP
+                            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/robot_bottom.png"), side: THREE.DoubleSide }), //BOTTOM
+                            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/robot_front.png"), side: THREE.DoubleSide }), //FRONT
+                            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/robot_front.png"), side: THREE.DoubleSide }), //BACK
+                        ];
+
+                        let robot = new THREE.Mesh(geometry, cubeMaterials);
+                        robot.position.y = 0.15;
+                        let group = new THREE.Group();
+                        group.add(robot);
+
+                        scene.add(group);
+                        worldObjects[command.parameters.uuid] = group;
+                    }
+
+                    if (command.parameters.type == "truck") {
+                        worldObjects[command.parameters.uuid] = null;
+                        gltfLoader.load('./gltf/truck1.glb', function ( gltf ) {
+                            let truck = gltf.scene;
+                            truck.scale.set(2,2,2);
+                            truck.receiveShadow = true;
+
+                            scene.add(truck);
+                            worldObjects[command.parameters.uuid] = truck;
+                        });
+                    }
+
+                    if (command.parameters.type == "stellage") {
+                        worldObjects[command.parameters.uuid] = null;
+                        let stellage = addStellage(stellageCounter, command.parameters.uuid);
+                        scene.add(stellage);
+                        worldObjects[command.parameters.uuid] = stellage;
+                    }
+                }
+
+                /*
+                 * Deze code wordt elke update uitgevoerd. Het update alle positiegegevens van het 3D object.
+                 */
+                let object = worldObjects[command.parameters.uuid];
+
+                if(object != null){
+                object.position.x = command.parameters.x;
+                object.position.y = command.parameters.y;
+                object.position.z = command.parameters.z;
+
+                object.rotation.x = command.parameters.rotationX;
+                object.rotation.y = command.parameters.rotationY;
+                object.rotation.z = command.parameters.rotationZ;
+                }
+            }
+        }
+
+
+        function addStellage(counter, uuid) {
+                let stellage;
+                let group = new THREE.Group();
+                gltfLoader.load('./gltf/stellage.glb', function (gltf){
+                    stellage = gltf.scene;
+                    group.add(stellage);
+                    group.receiveShadow = true;
+                });
+
+                const subFolder = stellages.addFolder(`Stellage-${counter}`);
+                let obj = { add:function (){
+                    let message = '{"command":"move","uuid":"'+uuid+'"}';
+                    socket.send(message);
+                }}
+                subFolder.add(obj, 'add').name('Naar locatie');
+                subFolder.close();
+                stellageCounter++;
+                return group;
+        }
+
+        let cameraObject = {
+            free: function (){
+                cameraControls.enabled = true;
+                if (currentCamera !== "free"){
+                    currentCamera = "free";
+                    loadCameraLocation(camera);
+                }
+                console.log("Changed camera to Free Cam.");
+                },
+            camera1: function (){
+                if(currentCamera === "free"){
+                    saveCameraLocation(camera);
+                }
+                cameraControls.enabled = false;
+                camera.position.x = -89;
+                camera.position.y = 20;
+                camera.position.z = 130;
+                camera.rotation.x = -(Math.PI * 2)/10;
+                camera.rotation.y = -((Math.PI*2)/8);
+                camera.rotation.z = -(Math.PI*2)/15;
+                currentCamera = "cam1";
+                console.log("Changed camera to Camera 1.");
+            },
+            camera2: function (){
+                if(currentCamera === "free"){
+                    saveCameraLocation(camera);
+                }
+                cameraControls.enabled = false;
+                camera.position.x = -89;
+                camera.position.y = 20;
+                camera.position.z = -10;
+                camera.rotation.x = -(Math.PI * 2)/10;
+                camera.rotation.y = ((Math.PI*2)/8);
+                camera.rotation.z = -(Math.PI*2)/15;
+                currentCamera = "cam2";
+                console.log("Changed camera to Camera 2.");
+            },
+            camera3: function (){
+                if(currentCamera === "free"){
+                    saveCameraLocation(camera);
+                }
+                cameraControls.enabled = false;
+                camera.position.x = -89;
+                camera.position.y = 20;
+                camera.position.z = -10;
+                camera.rotation.x = -(Math.PI * 2)/10;
+                camera.rotation.y = -((Math.PI*2)/8);
+                camera.rotation.z = -(Math.PI*2)/15;
+                currentCamera = "cam3";
+                console.log("Changed camera to Camera 3.");
+            }
+        }
+        cameras.add(cameraObject, 'free').name('Free cam');
+        cameras.add(cameraObject, 'camera1').name('Camera 1');
+        cameras.add(cameraObject, 'camera2').name('Camera 2');
+        cameras.add(cameraObject, 'camera3').name('Camera 3');
+
+        init();
+        render();
+
+        const composer = new EffectComposer(renderer);
+        composer.addPass(new RenderPass(scene,camera));
+        const bloomPass = new BloomPass(
+            1,    // strength
+            10,   // kernel size
+            1,    // sigma ?
+            1024,  // blur render target resolution
+        );
+        composer.addPass(bloomPass);
+
+        const filmPass = new FilmPass(
+            1,   // noise intensity
+            0.2,  // scanline intensity
+            400,    // scanline count
+            true,  // grayscale
+        );
+        filmPass.renderToScreen = true;
+        composer.addPass(filmPass);
+
+        let columns = 10;
+        let rows = 10;
+        let nodesize = 0.5;
+        let originx = 80;
+        let originz = 125;
+        nodegrid(columns, rows, nodesize,originx,originz, scene);
+    }
     </script>
 </body>
 

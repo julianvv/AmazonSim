@@ -1,20 +1,25 @@
 package com.nhlstenden.group7.AmazonSim.controllers;
 
-import com.nhlstenden.group7.AmazonSim.models.Object3D;
-import com.nhlstenden.group7.AmazonSim.models.ProxyObject3D;
-import com.nhlstenden.group7.AmazonSim.models.World;
+import com.nhlstenden.group7.AmazonSim.base.App;
+import com.nhlstenden.group7.AmazonSim.models.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class StellageController {
     private List<Object3D> objects;
+    private Object3D stellage;
+    private Object3D closestRobot;
+    private RobotController robotController;
 
     public StellageController(String uuid, World world){
         objects = world.getWorldObjectsAsList();
         int index = getModelIndex(uuid);
         if(index != -1){
-            objects.get(index).setStatus("toDock");
+            stellage = objects.get(index);
+            closestRobot = getClosesRobotHeuristix(stellage);
+            robotController = new RobotController(closestRobot, stellage);
         }else{
             System.out.println("Stellage niet gevonden...");
         }
@@ -30,5 +35,21 @@ public class StellageController {
             }
         }
         return -1;
+    }
+
+    private Object3D getClosesRobotHeuristix(Object3D stellage){
+        double distance = 99999;
+        Object3D closestRobot = null;
+        for(int i = 0; i< App.getRobotList().size(); i ++){
+            Object3D current = App.getRobotList().get(i);
+            if(!(current.getStatus() == "busy" || current.getStatus() == "attached")){
+                double newDist = Math.abs(current.getX() - stellage.getX()) + Math.abs(current.getZ() - stellage.getZ());
+                if(newDist < distance){
+                    distance = newDist;
+                    closestRobot = current;
+                }
+            }
+        }
+        return closestRobot;
     }
 }

@@ -10,18 +10,17 @@ public class Stellage implements Object3D, Updatable{
     private UUID uuid;
     private String status = "idle";
     private ProxyObject3D closestRobot;
-    private boolean robot;
-    private int distance;
 
-    private double x = 0;
+    private double x = 5;
     private double y = 1;
-    private double z = 0;
+    private double z = -5;
 
     private double rotationX = 0;
     private double rotationY = 0;
     private double rotationZ = 0;
 
     public Stellage(){
+
         this.uuid = UUID.randomUUID();
     }
 
@@ -82,6 +81,36 @@ public class Stellage implements Object3D, Updatable{
     }
 
     @Override
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    @Override
+    public void setY(double y) {
+        this.y = y;
+    }
+
+    @Override
+    public void setZ(double z) {
+        this.z = z;
+    }
+
+    @Override
+    public void setRotationX(double rotationX) {
+        this.rotationX = rotationX;
+    }
+
+    @Override
+    public void setRotationY(double rotationY) {
+        this.rotationY = rotationY;
+    }
+
+    @Override
+    public void setRotationZ(double rotationZ) {
+        this.rotationZ = rotationZ;
+    }
+
+    @Override
     public String setStatus(String status) {
         this.status = status;
         return "done";
@@ -89,5 +118,14 @@ public class Stellage implements Object3D, Updatable{
 
     public String getStatus(){
         return this.status;
+    }
+
+    @Override
+    public void setLerp(double lerp) {
+    }
+
+    @Override
+    public double getLerp() {
+        return 0;
     }
 }
