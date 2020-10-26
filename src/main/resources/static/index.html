@@ -29,10 +29,11 @@
     let cameraControls, camera;
     let scene, renderer;
     let currentCamera = "free";
+    let warehouseObject, mixer, openGarage;
     const gui = new GUI();
-    const ceiling = gui.addFolder('Ceiling');
+    const animations = gui.addFolder('Animations');
     const cameras = gui.addFolder('Camera\'s');
-    const stellages = gui.addFolder('Stellage\'s');
+    const options = gui.addFolder('Options');
 
     const gltfLoader = new GLTFLoader();
 
@@ -43,8 +44,6 @@
     }
 
     window.onload = function () {
-        let stellageCounter = 1;
-
         let worldObjects = {};
 
         function init() {
@@ -56,16 +55,24 @@
             scene = new THREE.Scene();
 
             const cubeLoader = new THREE.CubeTextureLoader();
-            const sbTexture = cubeLoader.load([
+            const sbTextureDay = cubeLoader.load([
             './textures/Skybox/side.png',
             './textures/Skybox/side.png',
             './textures/Skybox/top.png',
             './textures/Skybox/bottom.png',
             './textures/Skybox/side.png',
-            './textures/Skybox/side.png',
+            './textures/Skybox/side.png'
+            ]);
+            const sbTextureNight = cubeLoader.load([
+                './textures/Skybox/sideN.png',
+                './textures/Skybox/sideN.png',
+                './textures/Skybox/topN.png',
+                './textures/Skybox/bottomN.png',
+                './textures/Skybox/sideN.png',
+                './textures/Skybox/sideN.png'
             ]);
 
-            scene.background = sbTexture;
+            scene.background = sbTextureDay;
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setPixelRatio(window.devicePixelRatio);
@@ -78,8 +85,27 @@
             cameraControls = new OrbitControls(camera, renderer.domElement);
             cameraControls.update();
 
+            let directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1.5);
+            directionalLight.position.set(-150, 500, -50);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+
+            let dayObj = {
+                name: 'Dag',
+                day: true
+            }
+            options.add(dayObj, 'day').name(dayObj.name).onChange(function (){
+                if(dayObj.day === false){
+                    directionalLight.color.set(0xFFF);
+                    scene.background = sbTextureNight;
+                }else{
+                    directionalLight.color.set(0xFFFFFF);
+                    scene.background = sbTextureDay;
+                }
+            });
+
             let hemiLight = new THREE.HemisphereLight( 0xFF38D7, 0xFFA851, 0.2 );
-            scene.add(hemiLight);
+            //scene.add(hemiLight);
 
             let light = new THREE.AmbientLight(0x404040);
             light.intensity = 2;
@@ -106,6 +132,9 @@
             then = now;
             camera.updateProjectionMatrix();
 
+            if(mixer != null){
+                mixer.update(deltaTime);
+            }
 
             if (resizeRendererToDisplaySize(renderer)) {
                 const canvas = renderer.domElement;
@@ -142,26 +171,49 @@
 
                     if (command.parameters.type == "building") {
                         worldObjects[command.parameters.uuid] = null;
-                        gltfLoader.load('./gltf/warehousemapV2.glb', function ( gltf ) {
+                        gltfLoader.load('./gltf/amazonmap.glb', function ( gltf ) {
                             let warehouse = gltf.scene;
                             warehouse.scale.set(50,50,50);
-                            let warehouseObject = {
+
+                            mixer = new THREE.AnimationMixer(warehouse);
+                            let clip1 = gltf.animations[0];
+                            openGarage = mixer.clipAction(clip1);
+                            openGarage.loop = THREE.LoopOnce;
+                            openGarage.clampWhenFinished = true;
+
+                            warehouse.traverse( function (node){
+                                    node.castShadow = true;
+                                    node.receiveShadow = true;
+                            });
+
+                            warehouseObject = {
                                 warehouse: warehouse,
-                                ceilingStatus: warehouse.children[0].visible
+                                ceilingStatus: warehouse.children[3].visible
                             }
 
-                            ceiling.add(warehouseObject, 'ceilingStatus').name('Ceiling').onChange(function (){
-                                if(warehouseObject.warehouse.children[0].visible){
-                                    warehouseObject.warehouse.children[0].visible = false;
+                            options.add(warehouseObject, 'ceilingStatus').name('Ceiling').onChange(function (){
+                                if(warehouseObject.warehouse.children[3].visible){
+                                    warehouseObject.warehouse.children[3].visible = false;
                                     console.log('ceiling becomes false');
                                 }else{
-                                    warehouseObject.warehouse.children[0].visible = true;
+                                    warehouseObject.warehouse.children[3].visible = true;
                                     console.log('ceiling becomes true');
                                 }
                             });
                             scene.add(warehouse);
                             console.log(warehouse);
                             worldObjects[command.parameters.uuid] = warehouse;
+
+                            let garageObj = {
+                                open: function (){
+                                    openGarage.play();
+                                },
+                                close: function (){
+                                    openGarage.play();
+                                }
+                            }
+                            animations.add(garageObj, 'open').name("Open");
+                            animations.add(garageObj, 'close').name("Close");
                         });
                     }
                     //Wanneer het object een robot is, wordt de code hieronder uitgevoerd.
@@ -178,6 +230,8 @@
 
                         let robot = new THREE.Mesh(geometry, cubeMaterials);
                         robot.position.y = 0.15;
+                        robot.receiveShadow = true;
+                        robot.castShadow = true;
                         let group = new THREE.Group();
                         group.add(robot);
 
@@ -187,11 +241,13 @@
 
                     if (command.parameters.type == "truck") {
                         worldObjects[command.parameters.uuid] = null;
-                        gltfLoader.load('./gltf/truck1.glb', function ( gltf ) {
+                        gltfLoader.load('./gltf/truck1.glb', function (gltf){
                             let truck = gltf.scene;
                             truck.scale.set(2,2,2);
-                            truck.receiveShadow = true;
-
+                            truck.traverse( function (node){
+                                node.castShadow = true;
+                                node.receiveShadow = true;
+                            });
                             scene.add(truck);
                             worldObjects[command.parameters.uuid] = truck;
                         });
@@ -199,9 +255,16 @@
 
                     if (command.parameters.type == "stellage") {
                         worldObjects[command.parameters.uuid] = null;
-                        let stellage = addStellage(stellageCounter, command.parameters.uuid);
-                        scene.add(stellage);
-                        worldObjects[command.parameters.uuid] = stellage;
+                        gltfLoader.load('./gltf/stellage.glb', function (gltf){
+                           let stellage = gltf.scene;
+
+                           stellage.traverse( function (node){
+                               node.castShadow = true;
+                               node.receiveShadow = true;
+                           });
+                           scene.add(stellage);
+                           worldObjects[command.parameters.uuid] = stellage;
+                        });
                     }
                 }
 
@@ -220,27 +283,6 @@
                 object.rotation.z = command.parameters.rotationZ;
                 }
             }
-        }
-
-
-        function addStellage(counter, uuid) {
-                let stellage;
-                let group = new THREE.Group();
-                gltfLoader.load('./gltf/stellage.glb', function (gltf){
-                    stellage = gltf.scene;
-                    group.add(stellage);
-                    group.receiveShadow = true;
-                });
-
-                const subFolder = stellages.addFolder(`Stellage-${counter}`);
-                let obj = { add:function (){
-                    let message = '{"command":"move","uuid":"'+uuid+'"}';
-                    socket.send(message);
-                }}
-                subFolder.add(obj, 'add').name('Naar locatie');
-                subFolder.close();
-                stellageCounter++;
-                return group;
         }
 
         let cameraObject = {
@@ -301,7 +343,6 @@
         cameras.add(cameraObject, 'camera3').name('Camera 3');
 
         init();
-        render();
 
         const composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(scene,camera));
@@ -322,6 +363,8 @@
         filmPass.renderToScreen = true;
         composer.addPass(filmPass);
 
+        render();
+
         let columns = 10;
         let rows = 10;
         let nodesize = 0.5;
@@ -329,6 +372,7 @@
         let originz = 125;
         nodegrid(columns, rows, nodesize,originx,originz, scene);
     }
+
     </script>
 </body>
 

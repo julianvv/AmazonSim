@@ -1,9 +1,5 @@
 package com.nhlstenden.group7.AmazonSim.models;
 
-import com.nhlstenden.group7.AmazonSim.AStar.ClosestRobotPath;
-import com.nhlstenden.group7.AmazonSim.base.App;
-import com.nhlstenden.group7.AmazonSim.controllers.StellageController;
-
 import java.util.UUID;
 
 public class Stellage implements Object3D, Updatable{
@@ -29,10 +25,6 @@ public class Stellage implements Object3D, Updatable{
             return true;
         }
         if(status.equals("toDock")){
-            for(int i = 0; i < App.getRobotList().size(); i++){
-
-                System.out.println(ClosestRobotPath.SearchNodeTest2D(this, App.getRobotList().get(i)));
-            }
 
             this.x = 20;
             this.status = "idle";
@@ -80,37 +72,30 @@ public class Stellage implements Object3D, Updatable{
         return this.rotationZ;
     }
 
-    @Override
     public void setX(double x) {
         this.x = x;
     }
 
-    @Override
     public void setY(double y) {
         this.y = y;
     }
 
-    @Override
     public void setZ(double z) {
         this.z = z;
     }
 
-    @Override
     public void setRotationX(double rotationX) {
         this.rotationX = rotationX;
     }
 
-    @Override
     public void setRotationY(double rotationY) {
         this.rotationY = rotationY;
     }
 
-    @Override
     public void setRotationZ(double rotationZ) {
         this.rotationZ = rotationZ;
     }
 
-    @Override
     public String setStatus(String status) {
         this.status = status;
         return "done";
@@ -118,14 +103,5 @@ public class Stellage implements Object3D, Updatable{
 
     public String getStatus(){
         return this.status;
-    }
-
-    @Override
-    public void setLerp(double lerp) {
-    }
-
-    @Override
-    public double getLerp() {
-        return 0;
     }
 }

@@ -2,14 +2,10 @@ package com.nhlstenden.group7.AmazonSim.base;
 
 import com.nhlstenden.group7.AmazonSim.controllers.Controller;
 import com.nhlstenden.group7.AmazonSim.controllers.SimulationController;
-import com.nhlstenden.group7.AmazonSim.controllers.StellageController;
-import com.nhlstenden.group7.AmazonSim.models.Robot;
-import com.nhlstenden.group7.AmazonSim.models.Object3D;
-import com.nhlstenden.group7.AmazonSim.models.Stellage;
-import com.nhlstenden.group7.AmazonSim.models.World;
+import com.nhlstenden.group7.AmazonSim.models.StellageManager;
+import com.nhlstenden.group7.AmazonSim.models.*;
 import com.nhlstenden.group7.AmazonSim.views.DefaultWebSocketView;
 
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -18,6 +14,8 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -33,32 +31,17 @@ import java.util.List;
 @Configuration
 @EnableAutoConfiguration
 @EnableWebSocket
+@EnableScheduling
 public class App extends SpringBootServletInitializer implements WebSocketConfigurer {
 
     public static void main(String[] args){
         SpringApplication.run(App.class, args);
     }
-
-    private World world;
     private Controller controller;
 
-    public static List<Object3D> queue = new ArrayList<>();
-    public static List<Object3D> robotList = new ArrayList<>();
-
     public App() {
-        this.world = new World();
-        for(Object3D object: world.getWorldObjectsAsList()) {
-            if(object.getType().equals("robot")){
-                robotList.add(object);
-            }
-        }
-
-        this.controller = new SimulationController(world);
+        this.controller = new SimulationController(new World());
         this.controller.start();
-    }
-
-    public static List<Object3D> getRobotList(){
-        return robotList;
     }
 
     @Override
@@ -86,8 +69,17 @@ public class App extends SpringBootServletInitializer implements WebSocketConfig
             JSONObject obj;
             try{
                 obj = (JSONObject) parser.parse(clientMessage);
-                String uuid = (String) obj.get("uuid");
-                StellageController stellageController = new StellageController(uuid, world);
+                String cmd = (String) obj.get("cmd");
+
+                switch (cmd){
+                    case "moveStellage":
+
+                        break;
+                    default:
+                        System.out.println("Geen geldig commando gevonden...");
+                        break;
+                }
+
             }catch (ParseException e){
                 System.out.println(e);
             };

@@ -64,52 +64,11 @@ public class Building implements Object3D, Updatable {
         return this.rotationZ;
     }
 
-    @Override
-    public void setX(double x) {
-        this.x = x;
-    }
-
-    @Override
-    public void setY(double y) {
-        this.y = y;
-    }
-
-    @Override
-    public void setZ(double z) {
-        this.z = z;
-    }
-
-    @Override
-    public void setRotationX(double rotationX) {
-        this.rotationX = rotationX;
-    }
-
-    @Override
-    public void setRotationY(double rotationY) {
-        this.rotationY = rotationY;
-    }
-
-    @Override
-    public void setRotationZ(double rotationZ) {
-        this.rotationZ = rotationZ;
-    }
-
-    @Override
     public String setStatus(String status){
-        return "Still being pretty";
+        return this.status;
     }
 
     public String getStatus(){
         return this.status;
-    }
-
-    @Override
-    public void setLerp(double lerp) {
-
-    }
-
-    @Override
-    public double getLerp() {
-        return 0;
     }
 }

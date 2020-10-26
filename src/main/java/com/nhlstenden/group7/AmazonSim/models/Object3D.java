@@ -12,17 +12,5 @@ public interface Object3D {
     double getRotationY();
     double getRotationZ();
 
-    void setX(double x);
-    void setY(double y);
-    void setZ(double z);
-
-    void setRotationX(double rotationX);
-    void setRotationY(double rotationY);
-    void setRotationZ(double rotationZ);
-
-    public String setStatus(String status);
     public String getStatus();
-
-    void setLerp(double lerp);
-    double getLerp();
 }

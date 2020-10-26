@@ -1,4 +1,5 @@
 package com.nhlstenden.group7.AmazonSim.models;
+import com.nhlstenden.group7.AmazonSim.AstarAlgorithm.Astar;
 import com.nhlstenden.group7.AmazonSim.AstarAlgorithm.Node;
 
 import java.util.List;
@@ -7,7 +8,13 @@ import java.util.UUID;
 public class Robot implements Object3D, Updatable {
     private UUID uuid;
     private String status= "idle";
+    private Stellage stellage;
+    private double steps = 10;
     private double lerp = 0;
+    private Node nextNode;
+    private Node target;
+    private Astar astar;
+    private List<Node> path;
 
     private double x = 0;
     private double y = 1;
@@ -22,8 +29,29 @@ public class Robot implements Object3D, Updatable {
     }
 
     public boolean update(){
-        if(status.equals("idle") || status.equals("busy")){
-            return true;
+        if(nextNode == null){
+            if(path == null){
+                if(target == null){
+                    return true;
+                }else{
+                    astar = new Astar(174, 140, new Node((int) this.getX() + 89, (int) this.getZ() + 10), target);
+                    path = astar.findPath();
+                    nextNode = path.get(0);
+                    path.remove(0);
+
+                    //TODO: Transport method toepassen.
+                    this.x = nextNode.getRow() - 89;
+                    this.z = nextNode.getCol() - 10;
+                }
+            }else if(path.size() > 0){
+                nextNode = path.get(0);
+                path.remove(0);
+            }
+        }else{
+            //TODO: Transport method toepassen.
+            this.x = nextNode.getRow() - 89;
+            this.z = nextNode.getCol() - 10;
+            nextNode = null;
         }
         return true;
     }
@@ -53,32 +81,26 @@ public class Robot implements Object3D, Updatable {
         return this.z;
     }
 
-    @Override
     public void setX(double x) {
         this.x = x;
     }
 
-    @Override
     public void setY(double y) {
         this.y = y;
     }
 
-    @Override
     public void setZ(double z) {
         this.z = z;
     }
 
-    @Override
     public void setRotationX(double rotationX) {
         this.rotationX = x;
     }
 
-    @Override
     public void setRotationY(double rotationY) {
         this.rotationY = rotationY;
     }
 
-    @Override
     public void setRotationZ(double rotationZ) {
         this.rotationZ = rotationZ;
     }
@@ -98,23 +120,30 @@ public class Robot implements Object3D, Updatable {
         return this.rotationZ;
     }
 
-    @Override
-    public String setStatus(String status) {
+    public void setStatus(String status) {
         this.status = status;
-        return "done";
     }
 
     public String getStatus(){
         return this.status;
     }
 
-    @Override
-    public void setLerp(double lerp) {
-        this.lerp = lerp;
+    public Stellage getStellage(){
+        return this.stellage;
     }
 
-    @Override
-    public double getLerp() {
-        return this.lerp;
+    public void setStellage(Stellage stellage){
+        this.stellage = stellage;
+    }
+
+    public boolean getHasStellage(){
+        if (stellage == null){
+            return false;
+        }
+        return true;
+    }
+
+    public void setTarget(Node target){
+        this.target = target;
     }
 }

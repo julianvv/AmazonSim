@@ -47,52 +47,7 @@ public class ProxyObject3D implements Object3D{
         return this.object.getRotationZ();
     }
 
-    @Override
-    public void setX(double x) {
-        this.object.setX(x);
-    }
-
-    @Override
-    public void setY(double y) {
-        this.object.setY(y);
-    }
-
-    @Override
-    public void setZ(double z) {
-        this.object.setZ(z);
-    }
-
-    @Override
-    public void setRotationX(double rotationX) {
-        this.object.setRotationX(rotationX);
-    }
-
-    @Override
-    public void setRotationY(double rotationY) {
-        this.object.setRotationY(rotationY);
-    }
-
-    @Override
-    public void setRotationZ(double rotationZ) {
-        this.object.setRotationZ(rotationZ);
-    }
-
-    public String setStatus(String status){
-        this.object.setStatus(status);
-        return "Status van "+this.object+": "+status;
-    }
-
     public String getStatus(){
         return this.object.getStatus();
-    }
-
-    @Override
-    public void setLerp(double lerp) {
-        this.object.setLerp(lerp);
-    }
-
-    @Override
-    public double getLerp() {
-        return this.object.getLerp();
     }
 }
