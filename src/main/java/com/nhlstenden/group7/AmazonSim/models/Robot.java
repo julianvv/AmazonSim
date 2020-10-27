@@ -42,10 +42,15 @@ public class Robot implements Object3D, Updatable {
                     //TODO: Transport method toepassen.
                     this.x = nextNode.getRow() - 89;
                     this.z = nextNode.getCol() - 10;
+
+                    nextNode = null;
                 }
             }else if(path.size() > 0){
                 nextNode = path.get(0);
                 path.remove(0);
+
+                this.x = nextNode.getRow() - 89;
+                this.z = nextNode.getCol() - 10;
             }
         }else{
             //TODO: Transport method toepassen.

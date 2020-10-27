@@ -24,7 +24,7 @@
     import { nodegrid } from "./nodeGrid.js";
     import { Gui, addOption, addAnimation, getCurrentCamera } from "./gui/gui.js";
 
-    let cameraControls, camera, currentCamera, gui, mixer, openGarage, renderer, scene, socket, warehouseObject;
+    let cameraControls, camera, currentCamera, closeGarage, gui, mixer, mixer2, openGarage, renderer, scene, socket, warehouseObject;
     const gltfLoader = new GLTFLoader();
 
     function parseCommand(input = "") {
@@ -42,6 +42,7 @@
             camera.position.z = 15;
 
             scene = new THREE.Scene();
+
             const cubeLoader = new THREE.CubeTextureLoader();
             const sbTextureDay = cubeLoader.load([
             './textures/Skybox/side.png',
@@ -51,7 +52,6 @@
             './textures/Skybox/side.png',
             './textures/Skybox/side.png'
             ]);
-
             scene.background = sbTextureDay;
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -149,17 +149,23 @@
 
                     if (command.parameters.type == "building") {
                         worldObjects[command.parameters.uuid] = null;
-                        gltfLoader.load('./gltf/amazonmap.glb', function ( gltf ) {
+                        gltfLoader.load('./gltf/amazonmapV4.glb', function ( gltf ) {
                             let warehouse = gltf.scene;
                             warehouse.scale.set(50,50,50);
 
                             warehouse.position.set(command.parameters.x, command.parameters.y, command.parameters.z);
 
                             mixer = new THREE.AnimationMixer(warehouse);
-                            let clip1 = gltf.animations[0];
+                            let clip1 = gltf.animations[1];
                             openGarage = mixer.clipAction(clip1);
                             openGarage.loop = THREE.LoopOnce;
                             openGarage.clampWhenFinished = true;
+
+                            mixer2 = new THREE.AnimationMixer(warehouse);
+                            let clip2 = gltf.animations[0];
+                            closeGarage = mixer.clipAction(clip2);
+                            closeGarage.loop = THREE.LoopOnce;
+                            closeGarage.clampWhenFinished = true;
 
                             warehouse.traverse( function (node){
                                     node.castShadow = true;
@@ -189,7 +195,7 @@
                                     openGarage.play();
                                 },
                                 close: function (){
-                                    openGarage.play();
+                                    closeGarage.play();
                                 }
                             }
                             addAnimation(garageObj, 'open').name("Open");

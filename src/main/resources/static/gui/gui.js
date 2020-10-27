@@ -10,6 +10,7 @@ let currentCamera = "free";
 export function Gui(scene, directionalLight, camera, cameraControls){
     const cubeLoader = new THREE.CubeTextureLoader();
     let cameraObject = {
+
         free: function (){
             cameraControls.enabled = true;
             if (currentCamera !== "free"){
@@ -18,6 +19,7 @@ export function Gui(scene, directionalLight, camera, cameraControls){
             }
             console.log("Changed camera to Free Cam.");
         },
+
         camera1: function (){
             if(currentCamera === "free"){
                 saveCameraLocation(camera);
@@ -32,6 +34,7 @@ export function Gui(scene, directionalLight, camera, cameraControls){
             currentCamera = "cam1";
             console.log("Changed camera to Camera 1.");
         },
+
         camera2: function (){
             if(currentCamera === "free"){
                 saveCameraLocation(camera);
@@ -46,6 +49,7 @@ export function Gui(scene, directionalLight, camera, cameraControls){
             currentCamera = "cam2";
             console.log("Changed camera to Camera 2.");
         },
+
         camera3: function (){
             if(currentCamera === "free"){
                 saveCameraLocation(camera);
@@ -98,12 +102,12 @@ export function Gui(scene, directionalLight, camera, cameraControls){
     });
 }
 
-export function addOption(object, partOfObject){
-    return options.add(object, partOfObject);
+export function addOption(object, property){
+    return options.add(object, property);
 }
 
-export function addAnimation(object, partOfObject){
-    return animations.add(object, partOfObject);
+export function addAnimation(object, property){
+    return animations.add(object, property);
 }
 
 export function getCurrentCamera(){

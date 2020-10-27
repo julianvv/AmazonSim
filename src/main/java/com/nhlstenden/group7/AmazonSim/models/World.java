@@ -1,6 +1,5 @@
 package com.nhlstenden.group7.AmazonSim.models;
 
-import com.nhlstenden.group7.AmazonSim.AstarAlgorithm.Astar;
 import com.nhlstenden.group7.AmazonSim.AstarAlgorithm.Node;
 
 import java.beans.PropertyChangeListener;
