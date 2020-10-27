@@ -25,6 +25,7 @@ public class World implements Model{
         this.robotList = new ArrayList<>();
         this.stellageList = new ArrayList<>();
         this.truckList = new ArrayList<>();
+        this.isBuildingLoaded = false;
         this.buildingList.add(new Building());
         this.robotList.add(new Robot());
         this.robotList.add(new Robot());
@@ -38,8 +39,6 @@ public class World implements Model{
         this.stellageList.add(new Stellage());
         this.stellageList.add(new Stellage());
         this.truckList.add(new Truck());
-
-        this.isBuildingLoaded = false;
     }
 
     @Override
@@ -134,7 +133,7 @@ public class World implements Model{
                             robot.setTarget(dockNode);
                         }
                     }else{
-                        double closestHeuristix = 999999;
+                        double closestHeuristix = Double.MAX_VALUE;
                         Stellage closestStellage = null;
                         for(Stellage stellage : stellageList){
                             double currentDist = Math.abs(robot.getX() - stellage.getX()) + Math.abs(robot.getZ() - stellage.getZ());

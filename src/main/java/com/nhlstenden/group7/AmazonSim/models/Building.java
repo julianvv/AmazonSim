@@ -8,7 +8,7 @@ public class Building implements Object3D, Updatable {
     private String status= "Being pretty";
 
     private double x = 0;
-    private double y = 0;
+    private double y = 2.5;
     private double z = 0;
 
     private double rotationX = 0;
@@ -20,7 +20,7 @@ public class Building implements Object3D, Updatable {
     }
 
     public boolean update(){
-        this.y = 0;
+
         return true;
     }
 

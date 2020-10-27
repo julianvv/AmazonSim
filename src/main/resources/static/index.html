@@ -17,29 +17,18 @@
     import * as THREE from "./three/build/three.module.js";
     import { OrbitControls } from "./three/examples/jsm/controls/OrbitControls.js";
     import { GLTFLoader } from './three/examples/jsm/loaders/GLTFLoader.js';
-    import { GUI } from './three/examples/jsm/libs/dat.gui.module.js';
     import {EffectComposer} from "./three/examples/jsm/postprocessing/EffectComposer.js ";
     import {BloomPass} from "./three/examples/jsm/postprocessing/BloomPass.js";
     import {RenderPass} from "./three/examples/jsm/postprocessing/RenderPass.js";
     import {FilmPass} from "./three/examples/jsm/postprocessing/FilmPass.js";
-    import { saveCameraLocation } from "./saveLoadCamera.js";
-    import { loadCameraLocation } from "./saveLoadCamera.js";
     import { nodegrid } from "./nodeGrid.js";
+    import { Gui, addOption, addAnimation, getCurrentCamera } from "./gui/gui.js";
 
-    let cameraControls, camera;
-    let scene, renderer;
-    let currentCamera = "free";
-    let warehouseObject, mixer, openGarage;
-    const gui = new GUI();
-    const animations = gui.addFolder('Animations');
-    const cameras = gui.addFolder('Camera\'s');
-    const options = gui.addFolder('Options');
-
+    let cameraControls, camera, currentCamera, gui, mixer, openGarage, renderer, scene, socket, warehouseObject;
     const gltfLoader = new GLTFLoader();
 
-    let socket;
-
     function parseCommand(input = "") {
+        console.log(JSON.parse(input));
         return JSON.parse(input);
     }
 
@@ -53,7 +42,6 @@
             camera.position.z = 15;
 
             scene = new THREE.Scene();
-
             const cubeLoader = new THREE.CubeTextureLoader();
             const sbTextureDay = cubeLoader.load([
             './textures/Skybox/side.png',
@@ -62,14 +50,6 @@
             './textures/Skybox/bottom.png',
             './textures/Skybox/side.png',
             './textures/Skybox/side.png'
-            ]);
-            const sbTextureNight = cubeLoader.load([
-                './textures/Skybox/sideN.png',
-                './textures/Skybox/sideN.png',
-                './textures/Skybox/topN.png',
-                './textures/Skybox/bottomN.png',
-                './textures/Skybox/sideN.png',
-                './textures/Skybox/sideN.png'
             ]);
 
             scene.background = sbTextureDay;
@@ -90,22 +70,19 @@
             directionalLight.castShadow = true;
             scene.add(directionalLight);
 
-            let dayObj = {
-                name: 'Dag',
-                day: true
-            }
-            options.add(dayObj, 'day').name(dayObj.name).onChange(function (){
-                if(dayObj.day === false){
-                    directionalLight.color.set(0xFFF);
-                    scene.background = sbTextureNight;
-                }else{
-                    directionalLight.color.set(0xFFFFFF);
-                    scene.background = sbTextureDay;
-                }
-            });
+            gui = new Gui(scene, directionalLight, camera, cameraControls);
 
-            let hemiLight = new THREE.HemisphereLight( 0xFF38D7, 0xFFA851, 0.2 );
-            //scene.add(hemiLight);
+            let pointLight = new THREE.PointLight(0xFFFFFF, 1, 100, 2);
+            pointLight.position.set(-40, 20, 10);
+            pointLight.castShadow = true;
+            pointLight.shadow.normalBias = 0.1;
+            scene.add(pointLight);
+
+            let sphereSize = 5;
+            let pointLightHelper = new THREE.PointLightHelper( pointLight, sphereSize );
+            scene.add( pointLightHelper );
+
+
 
             let light = new THREE.AmbientLight(0x404040);
             light.intensity = 2;
@@ -131,6 +108,7 @@
             let deltaTime = now - then;
             then = now;
             camera.updateProjectionMatrix();
+            currentCamera = getCurrentCamera();
 
             if(mixer != null){
                 mixer.update(deltaTime);
@@ -175,6 +153,8 @@
                             let warehouse = gltf.scene;
                             warehouse.scale.set(50,50,50);
 
+                            warehouse.position.set(command.parameters.x, command.parameters.y, command.parameters.z);
+
                             mixer = new THREE.AnimationMixer(warehouse);
                             let clip1 = gltf.animations[0];
                             openGarage = mixer.clipAction(clip1);
@@ -191,7 +171,7 @@
                                 ceilingStatus: warehouse.children[3].visible
                             }
 
-                            options.add(warehouseObject, 'ceilingStatus').name('Ceiling').onChange(function (){
+                            addOption(warehouseObject, 'ceilingStatus').name('Ceiling').onChange(function (){
                                 if(warehouseObject.warehouse.children[3].visible){
                                     warehouseObject.warehouse.children[3].visible = false;
                                     console.log('ceiling becomes false');
@@ -212,8 +192,8 @@
                                     openGarage.play();
                                 }
                             }
-                            animations.add(garageObj, 'open').name("Open");
-                            animations.add(garageObj, 'close').name("Close");
+                            addAnimation(garageObj, 'open').name("Open");
+                            addAnimation(garageObj, 'close').name("Close");
                         });
                     }
                     //Wanneer het object een robot is, wordt de code hieronder uitgevoerd.
@@ -229,14 +209,12 @@
                         ];
 
                         let robot = new THREE.Mesh(geometry, cubeMaterials);
-                        robot.position.y = 0.15;
                         robot.receiveShadow = true;
                         robot.castShadow = true;
-                        let group = new THREE.Group();
-                        group.add(robot);
+                        robot.position.set(command.parameters.x, command.parameters.y, command.parameters.z);
 
-                        scene.add(group);
-                        worldObjects[command.parameters.uuid] = group;
+                        scene.add(robot);
+                        worldObjects[command.parameters.uuid] = robot;
                     }
 
                     if (command.parameters.type == "truck") {
@@ -248,6 +226,7 @@
                                 node.castShadow = true;
                                 node.receiveShadow = true;
                             });
+                            truck.position.set(command.parameters.x, command.parameters.y, command.parameters.z);
                             scene.add(truck);
                             worldObjects[command.parameters.uuid] = truck;
                         });
@@ -262,6 +241,7 @@
                                node.castShadow = true;
                                node.receiveShadow = true;
                            });
+                           stellage.position.set(command.parameters.x, command.parameters.y, command.parameters.z);
                            scene.add(stellage);
                            worldObjects[command.parameters.uuid] = stellage;
                         });
@@ -284,63 +264,6 @@
                 }
             }
         }
-
-        let cameraObject = {
-            free: function (){
-                cameraControls.enabled = true;
-                if (currentCamera !== "free"){
-                    currentCamera = "free";
-                    loadCameraLocation(camera);
-                }
-                console.log("Changed camera to Free Cam.");
-                },
-            camera1: function (){
-                if(currentCamera === "free"){
-                    saveCameraLocation(camera);
-                }
-                cameraControls.enabled = false;
-                camera.position.x = -89;
-                camera.position.y = 20;
-                camera.position.z = 130;
-                camera.rotation.x = -(Math.PI * 2)/10;
-                camera.rotation.y = -((Math.PI*2)/8);
-                camera.rotation.z = -(Math.PI*2)/15;
-                currentCamera = "cam1";
-                console.log("Changed camera to Camera 1.");
-            },
-            camera2: function (){
-                if(currentCamera === "free"){
-                    saveCameraLocation(camera);
-                }
-                cameraControls.enabled = false;
-                camera.position.x = -89;
-                camera.position.y = 20;
-                camera.position.z = -10;
-                camera.rotation.x = -(Math.PI * 2)/10;
-                camera.rotation.y = ((Math.PI*2)/8);
-                camera.rotation.z = -(Math.PI*2)/15;
-                currentCamera = "cam2";
-                console.log("Changed camera to Camera 2.");
-            },
-            camera3: function (){
-                if(currentCamera === "free"){
-                    saveCameraLocation(camera);
-                }
-                cameraControls.enabled = false;
-                camera.position.x = -89;
-                camera.position.y = 20;
-                camera.position.z = -10;
-                camera.rotation.x = -(Math.PI * 2)/10;
-                camera.rotation.y = -((Math.PI*2)/8);
-                camera.rotation.z = -(Math.PI*2)/15;
-                currentCamera = "cam3";
-                console.log("Changed camera to Camera 3.");
-            }
-        }
-        cameras.add(cameraObject, 'free').name('Free cam');
-        cameras.add(cameraObject, 'camera1').name('Camera 1');
-        cameras.add(cameraObject, 'camera2').name('Camera 2');
-        cameras.add(cameraObject, 'camera3').name('Camera 3');
 
         init();
 
