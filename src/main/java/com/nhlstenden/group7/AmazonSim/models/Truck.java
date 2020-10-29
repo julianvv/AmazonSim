@@ -8,9 +8,10 @@ public class Truck implements Object3D, Updatable {
     private UUID uuid;
     private List<Stellage> stellages;
     private String status = "unloading";
+    private int maxStellages;
 
     private double x = 0;
-    private double y = 0;
+    private double y = 0.85;
     private double z = 0;
 
     private double rotationX = 0;
@@ -20,14 +21,16 @@ public class Truck implements Object3D, Updatable {
     public Truck(){
         this.uuid = UUID.randomUUID();
         stellages = new ArrayList<>();
-        addStellages(10);
+        maxStellages = 8;
+        addStellages(maxStellages);
     }
 
     public boolean update(){
-
-        this.x = 10;
-        this.y = 1;
-        this.z = 6;
+        for(Stellage stellage : stellages){
+            stellage.setX(this.x - 1);
+            stellage.setY(this.y + 2);
+            stellage.setZ(this.z);
+        }
         return true;
     }
 
@@ -105,7 +108,7 @@ public class Truck implements Object3D, Updatable {
 
     private void addStellages(int amount){
         for(int i = 0; i < amount; i ++){
-            stellages.add(new Stellage());
+            stellages.add(new Stellage("truck"));
         }
     }
 
@@ -121,5 +124,13 @@ public class Truck implements Object3D, Updatable {
 
     public void addStellage(Stellage stellage){
         stellages.add(stellage);
+    }
+
+    public List<Stellage> getStellages() {
+        return stellages;
+    }
+
+    public int getMaxStellages(){
+        return this.maxStellages;
     }
 }

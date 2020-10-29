@@ -7,6 +7,7 @@ export function nodegrid(columns, rows, nodesize, originX, originZ, scene) {
             let cube = new Mesh(geometry, material);
             cube.position.x = i + originX;
             cube.position.z = j + originZ;
+
             scene.add(cube);
         }
     }

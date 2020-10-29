@@ -1,14 +1,19 @@
 package com.nhlstenden.group7.AmazonSim.models;
 
+import com.nhlstenden.group7.AmazonSim.AstarAlgorithm.Node;
+
 import java.util.UUID;
 
 public class Stellage implements Object3D, Updatable{
     private UUID uuid;
-    private String status = "idle";
-    private ProxyObject3D closestRobot;
+    private String status;
+    private Robot robot;
+    private Truck truck;
+    private boolean isNew;
+    private boolean isReserved;
 
     private double x = 5;
-    private double y = 1;
+    private double y = -0.84;
     private double z = -5;
 
     private double rotationX = 0;
@@ -16,18 +21,36 @@ public class Stellage implements Object3D, Updatable{
     private double rotationZ = 0;
 
     public Stellage(){
-
         this.uuid = UUID.randomUUID();
+        this.status = "start";
+        this.isNew = false;
+        this.isReserved = false;
+
+    }
+
+    public Stellage(String status){
+        this.uuid = UUID.randomUUID();
+        this.status = status;
+        this.isNew = true;
+        this.isReserved = false;
     }
 
     public boolean update(){
-        if (status.equals("idle")){
-            return true;
-        }
-        if(status.equals("toDock")){
 
-            this.x = 20;
-            this.status = "idle";
+
+        if(robot != null){
+            this.x = this.robot.getX();
+            this.y = this.robot.getY() - 0.15;
+            this.z = this.robot.getZ();
+            this.rotationX = this.robot.getRotationX();
+            this.rotationY = this.robot.getRotationY();
+            this.rotationZ = this.robot.getRotationZ();
+        }
+
+        if(truck != null){
+            this.x = this.truck.getX();
+            this.y = this.truck.getY() - 0.15;
+            this.z = this.truck.getZ();
         }
         return true;
     }
@@ -103,5 +126,29 @@ public class Stellage implements Object3D, Updatable{
 
     public String getStatus(){
         return this.status;
+    }
+
+    public void setTruck(Truck truck) {
+        this.truck = truck;
+    }
+
+    public Truck getTruck(){
+        return this.truck;
+    }
+
+    public void setRobot(Robot robot){
+        this.robot = robot;
+    }
+
+    public Node getCurrentNode(){
+        return new Node((int) this.x + 89, (int) this.z + 10);
+    }
+
+    public boolean getIsReserved(){
+        return this.isReserved;
+    }
+
+    public void setIsReserved(boolean value){
+        this.isReserved = value;
     }
 }

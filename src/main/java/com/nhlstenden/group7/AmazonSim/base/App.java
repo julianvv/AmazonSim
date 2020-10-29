@@ -2,7 +2,6 @@ package com.nhlstenden.group7.AmazonSim.base;
 
 import com.nhlstenden.group7.AmazonSim.controllers.Controller;
 import com.nhlstenden.group7.AmazonSim.controllers.SimulationController;
-import com.nhlstenden.group7.AmazonSim.models.StellageManager;
 import com.nhlstenden.group7.AmazonSim.models.*;
 import com.nhlstenden.group7.AmazonSim.views.DefaultWebSocketView;
 
@@ -15,7 +14,6 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -25,8 +23,6 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 @Configuration
 @EnableAutoConfiguration
