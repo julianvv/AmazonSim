@@ -7,7 +7,7 @@ import java.util.UUID;
 public class Truck implements Object3D, Updatable {
     private UUID uuid;
     private List<Stellage> stellages;
-    private String status = "unloading";
+    private String status;
     private int maxStellages;
 
     private double x = 0;
@@ -20,6 +20,7 @@ public class Truck implements Object3D, Updatable {
 
     public Truck(){
         this.uuid = UUID.randomUUID();
+        this.status = "unloading";
         stellages = new ArrayList<>();
         maxStellages = 8;
         addStellages(maxStellages);
@@ -108,7 +109,7 @@ public class Truck implements Object3D, Updatable {
 
     private void addStellages(int amount){
         for(int i = 0; i < amount; i ++){
-            stellages.add(new Stellage("truck"));
+            stellages.add(new Stellage(this));
         }
     }
 

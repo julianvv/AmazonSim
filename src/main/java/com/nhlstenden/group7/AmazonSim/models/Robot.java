@@ -10,8 +10,7 @@ public class Robot implements Object3D, Updatable {
     private String status;
     private Stellage stellage;
     private Stellage stellageTarget;
-    private double steps = 10;
-    private double lerp = 0;
+    private Node storePosition;
     private Node nextNode;
     private Node target;
     private Astar astar;
@@ -34,9 +33,9 @@ public class Robot implements Object3D, Updatable {
         if((this.z > 9 && this.z < 22) && ((this.x > -82 && this.x < -76) || (this.x > 77 && this.x < 83))){
             this.rotationX = 0.158259;//(Math.PI * 2)/22;
             if((this.path.get(0).getCol() - 10) - this.z > 0){
-                this.y -= 0.065;
+                this.y -= 0.064;
             }else{
-                this.y += 0.065;
+                this.y += 0.064;
             }
         }else{
             this.rotationX = 0;
@@ -49,7 +48,6 @@ public class Robot implements Object3D, Updatable {
         if(nextNode == null){
             if(path == null){
                 if(target == null){
-                    setStatus("atTarget");
                     return true;
                 }else{
                     astar = new Astar(174, 140, new Node((int) this.getX() + 89, (int) this.getZ() + 10), target);
@@ -249,6 +247,9 @@ public class Robot implements Object3D, Updatable {
     public void setTarget(Node target){
         this.target = target;
     }
+    public Node getTarget(){
+        return this.target;
+    }
 
     public void setTargetStellage(Stellage target){
         this.stellageTarget = target;
@@ -259,5 +260,17 @@ public class Robot implements Object3D, Updatable {
 
     public Node getCurrentNode(){
         return new Node((int) this.x + 89, (int) this.z + 10);
+    }
+
+    public boolean getIsAtTarget(){
+        return this.target.equals(this.getCurrentNode());
+    }
+
+    public Node getStorePosition(){
+        return this.storePosition;
+    }
+
+    public void setStorePosition(Node node){
+        this.storePosition = node;
     }
 }

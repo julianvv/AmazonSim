@@ -28,16 +28,14 @@ public class Stellage implements Object3D, Updatable{
 
     }
 
-    public Stellage(String status){
+    public Stellage(Truck truck){
         this.uuid = UUID.randomUUID();
-        this.status = status;
+        this.status = "truck";
         this.isNew = true;
         this.isReserved = false;
     }
 
     public boolean update(){
-
-
         if(robot != null){
             this.x = this.robot.getX();
             this.y = this.robot.getY() - 0.15;
