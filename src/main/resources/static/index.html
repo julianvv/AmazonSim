@@ -24,7 +24,7 @@
     import { nodegrid } from "./nodeGrid.js";
     import { Gui, addOption, addAnimation, getCurrentCamera } from "./gui/gui.js";
 
-    let cameraControls, camera, currentCamera, closeGarage, gui, mixer, mixer2, openGarage, renderer, scene, socket, warehouseObject;
+    let cameraControls, camera, currentCamera, closeGarage, gui, mixer, mixer2, openGarage, renderer, scene, socket, truckAnimation, truckAnimation2, warehouseObject;
     const gltfLoader = new GLTFLoader();
 
     function parseCommand(input = "") {
@@ -143,7 +143,7 @@
 
                     if (command.parameters.type == "building") {
                         worldObjects[command.parameters.uuid] = null;
-                        gltfLoader.load('./gltf/amazonmapV4.glb', function ( gltf ) {
+                        gltfLoader.load('./gltf/amazonmapv5.glb', function ( gltf ) {
                             let warehouse = gltf.scene;
                             warehouse.scale.set(50,50,50);
                             console.log(warehouse);
@@ -151,16 +151,21 @@
                             warehouse.position.set(command.parameters.x, command.parameters.y, command.parameters.z);
 
                             mixer = new THREE.AnimationMixer(warehouse);
-                            let clip1 = gltf.animations[1];
-                            openGarage = mixer.clipAction(clip1);
-                            openGarage.loop = THREE.LoopOnce;
+                            openGarage = mixer.clipAction(gltf.animations[0]);
+                            openGarage.setLoop( THREE.LoopOnce);
                             openGarage.clampWhenFinished = true;
 
-                            mixer2 = new THREE.AnimationMixer(warehouse);
-                            let clip2 = gltf.animations[0];
-                            closeGarage = mixer.clipAction(clip2);
-                            closeGarage.loop = THREE.LoopOnce;
+                            closeGarage = mixer.clipAction(gltf.animations[1]);
+                            closeGarage.setLoop( THREE.LoopOnce);
                             closeGarage.clampWhenFinished = true;
+
+                            truckAnimation = mixer.clipAction(gltf.animations[2]);
+                            truckAnimation.setLoop( THREE.LoopOnce);
+                            truckAnimation.clampWhenFinished = true;
+
+                            truckAnimation2 = mixer.clipAction(gltf.animations[3]);
+                            truckAnimation2.setLoop( THREE.LoopOnce);
+                            truckAnimation2.clampWhenFinished = true;
 
                             warehouse.traverse( function (node){
                                     node.castShadow = true;
@@ -169,32 +174,39 @@
 
                             warehouseObject = {
                                 warehouse: warehouse,
-                                ceilingStatus: warehouse.children[3].visible
+                                ceilingStatus: warehouse.children[30].visible
                             }
 
                             addOption(warehouseObject, 'ceilingStatus').name('Ceiling').onChange(function (){
-                                if(warehouseObject.warehouse.children[3].visible){
-                                    warehouseObject.warehouse.children[3].visible = false;
+                                if(warehouseObject.warehouse.children[30].visible){
+                                    warehouseObject.warehouse.children[30].visible = false;
                                     console.log('ceiling becomes false');
                                 }else{
-                                    warehouseObject.warehouse.children[3].visible = true;
+                                    warehouseObject.warehouse.children[30].visible = true;
                                     console.log('ceiling becomes true');
                                 }
                             });
                             scene.add(warehouse);
-                            console.log(warehouse);
                             worldObjects[command.parameters.uuid] = warehouse;
+                            console.log(gltf);
 
                             let garageObj = {
                                 open: function (){
                                     openGarage.play();
+                                    closeGarage.stop();
                                 },
                                 close: function (){
                                     closeGarage.play();
+                                    openGarage.stop();
+                                },
+                                truck: function (){
+                                    truckAnimation.play();
+                                    truckAnimation2.play();
                                 }
                             }
                             addAnimation(garageObj, 'open').name("Open");
                             addAnimation(garageObj, 'close').name("Close");
+                            addAnimation(garageObj, 'truck').name("truck");
                         });
                     }
                     //Wanneer het object een robot is, wordt de code hieronder uitgevoerd.
@@ -222,7 +234,7 @@
                         worldObjects[command.parameters.uuid] = null;
                         gltfLoader.load('./gltf/AmazonTruck.glb', function (gltf){
                             let truck = gltf.scene;
-                            truck.scale.set(2,2,2);
+                            truck.scale.set(2.5,2.5,2.5);
                             truck.traverse( function (node){
                                 node.castShadow = true;
                                 node.receiveShadow = true;
@@ -245,6 +257,24 @@
                            stellage.position.set(command.parameters.x, command.parameters.y, command.parameters.z);
                            scene.add(stellage);
                            worldObjects[command.parameters.uuid] = stellage;
+                        });
+                    }
+
+                    if(command.parameters.type == "orderpicker"){
+                        worldObjects[command.parameters.uuid] = null;
+                        console.log("humaaaan")
+                        gltfLoader.load('./gltf/tposehuman.glb', function (gltf){
+                           console.log("HUMAAAAN")
+                            let orderPicker = gltf.scene;
+
+                           orderPicker.traverse( function (node){
+                               node.castShadow = true;
+                               node.receiveShadow = true;
+                            });
+                           orderPicker.position.set(command.parameters.x, command.parameters.y, command.parameters.z);
+                           orderPicker.rotation.y = command.parameters.rotationY;
+                           scene.add(orderPicker);
+                           worldObjects[command.parameters.uuid] = orderPicker;
                         });
                     }
                 }
@@ -289,11 +319,11 @@
 
         render();
 
-        let columns = 2;
+        let columns = 4;
         let rows = 174;
         let nodesize = 0.5;
         let originx = -90;
-        let originz = 8;
+        let originz = 72;
         nodegrid(columns, rows, nodesize,originx,originz, scene);
     }
 

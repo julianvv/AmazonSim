@@ -9,57 +9,42 @@ import java.util.List;
 
 public class World implements Model{
     private Node dockNode;
-    private Node orderPicker;
     private List<Building> buildingList;
-    private boolean isBuildingLoaded;
+    private List<OrderPicker> orderPickerList;
     private boolean isAtStart;
     private List<Robot> robotList;
-    private List<Robot> reservedRobots;
+    private List<Robot> reservedUnloadingRobots;
+    private List<Robot> reservedLoadingRobots;
+    private List<Robot> reservedOrderRobots;
     private List<Stellage> stellageList;
     private List<Stellage> reservedStellages;
     private List<Truck> truckList;
     private int[][] stellagePositions;
     private int[][] robotPositions;
+    private int[][] requestPositions;
     PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     public World(){
         this.dockNode = new Node(97,0);
         this.reservedStellages = new ArrayList<>();
-        this.reservedRobots =  new ArrayList<>();
+        this.reservedUnloadingRobots =  new ArrayList<>();
+        this.reservedLoadingRobots =  new ArrayList<>();
+        this.reservedOrderRobots = new ArrayList<>();
+
         this.buildingList = new ArrayList<>();
-        this.robotList = new ArrayList<>();
-        this.stellageList = new ArrayList<>();
-        this.truckList = new ArrayList<>();
-        this.isBuildingLoaded = false;
         this.buildingList.add(new Building());
-        this.robotList.add(new Robot());
-        this.robotList.add(new Robot());
-        this.robotList.add(new Robot());
-        this.robotList.add(new Robot());
-        this.robotList.add(new Robot());
-        this.robotList.add(new Robot());
-        this.robotList.add(new Robot());
-        this.robotList.add(new Robot());
-        this.robotList.add(new Robot());
-        this.robotList.add(new Robot());
-        this.robotList.add(new Robot());
-        this.stellageList.add(new Stellage());
-        this.stellageList.add(new Stellage());
-        this.stellageList.add(new Stellage());
-        this.stellageList.add(new Stellage());
-        this.stellageList.add(new Stellage());
-        this.stellageList.add(new Stellage());
-        this.stellageList.add(new Stellage());
-        this.stellageList.add(new Stellage());
-        this.stellageList.add(new Stellage());
-        this.stellageList.add(new Stellage());
-        this.stellageList.add(new Stellage());
-        this.stellageList.add(new Stellage());
-        this.stellageList.add(new Stellage());
-        this.stellageList.add(new Stellage());
-        this.stellageList.add(new Stellage());
+
+        this.orderPickerList = new ArrayList<>();
+        this.orderPickerList.add(new OrderPicker());
+
+        this.robotList = new ArrayList<>();
+        this.addRobots(15);
+
+        this.stellageList = new ArrayList<>();
+        this.addStellages(15);
+
+        this.truckList = new ArrayList<>();
         this.truckList.add(new Truck());
-        Truck truck = truckList.get(0);
         stellageList.addAll(truckList.get(0).getStellages());
         stellagePositions = new int[][]{
                 {31, 91, 0}, {31, 88, 0}, {31, 85, 0}, {31, 82, 0}, {31, 79, 0},
@@ -71,28 +56,20 @@ public class World implements Model{
         };
 
         robotPositions = new int[][]{
-                {125, 79,0}, {125, 82,0}, {125, 85,0}, {125, 88,0},
-                {138, 79,0}, {138, 82,0}, {138, 85,0}, {138, 88,0},
-                {151, 79,0},{151, 82,0}, {151, 85,0}, {151, 88,0},
+                {125, 79,0}, {125, 82,0}, {125, 85,0}, {125, 88,0}, {125, 91, 0},
+                {138, 79,0}, {138, 82,0}, {138, 85,0}, {138, 88,0}, {138, 91, 0},
+                {151, 79,0},{151, 82,0}, {151, 85,0}, {151, 88,0}, {151, 91, 0},
         };
 
+        requestPositions = new int[][]{
+                {0, 88, 0}, {0, 85, 0}, {0, 82, 0}
+        };
         this.isAtStart = true;
     }
 
     @Override
     public void update(){
-        SimulationLoop();
-        if(!isBuildingLoaded){
-            for(Object3D object : buildingList){
-                if(object instanceof Updatable){
-                    if(((Updatable)object).update()){
-                        pcs.firePropertyChange(Model.UPDATE_COMMAND, null, new ProxyObject3D(object));
-                    }
-                }
-            }
-            this.isBuildingLoaded = true;
-        }
-
+        simulationLoop();
         for(Object3D object : robotList){
             if(object instanceof Updatable){
                 if(((Updatable)object).update()){
@@ -129,6 +106,9 @@ public class World implements Model{
         for(Object3D object : buildingList){
             returnList.add(new ProxyObject3D(object));
         }
+        for(Object3D object : orderPickerList){
+            returnList.add(new ProxyObject3D(object));
+        }
         for(Object3D object : robotList){
             returnList.add(new ProxyObject3D(object));
         }
@@ -141,16 +121,29 @@ public class World implements Model{
         return returnList;
     }
 
-    public void SimulationLoop(){
+    public void addRobots(int count){
+        for(int i = 0; i < count; i ++){
+            this.robotList.add(new Robot());
+        }
+    }
+
+    public void addStellages(int count){
+        for(int i = 0; i < count; i ++){
+            this.stellageList.add(new Stellage());
+        }
+    }
+
+    public void simulationLoop(){
         if(isAtStart){
             for(Stellage stellage : stellageList){
                 if(stellage.getStatus().equals("start")){
                     for(int i = 0; i < stellagePositions.length; i ++){
                         if(stellagePositions[i][2] == 0){
                             stellage.setStatus("stored");
+                            stellagePositions[i][2] = 1;
                             stellage.setX(stellagePositions[i][0] - 89);
                             stellage.setZ(stellagePositions[i][1] - 10);
-                            stellagePositions[i][2] = 1;
+                            stellage.setStorePosition(new Node(stellagePositions[i][0], stellagePositions[i][1]));
                             break;
                         }
                     }
@@ -162,13 +155,63 @@ public class World implements Model{
                     for(int i = 0; i < robotPositions.length; i++){
                         if(robotPositions[i][2] == 0){
                             robot.setStatus("idle");
+                            robotPositions[i][2] = 1;
                             robot.setX(robotPositions[i][0] - 89);
                             robot.setZ(robotPositions[i][1] - 10);
-                            robotPositions[i][2] = 1;
                             robot.setStorePosition(new Node(robotPositions[i][0], robotPositions[i][1]));
                             break;
                         }
                     }
+                }
+            }
+            isAtStart = true;
+        }
+
+        for(Robot robot : robotList){
+            if(robot.getStatus().equals("addingStellages")){
+                checkUnloadingTarget(robot);
+            }
+        }
+
+
+        OrderPicker orderPicker = orderPickerList.get(0);
+        if(orderPicker.getStatus().equals("requesting")){
+            for(Robot robot : robotList){
+                switch(robot.getStatus()){
+                    case "idle":
+                        if(reservedOrderRobots.size() < requestPositions.length){
+                            if(getIsFreeOrderPosition()){
+                                reservedOrderRobots.add(robot);
+                                freeRobotTarget(robot);
+                                robot.setTarget(getClosestStellage(robot, false));
+                                robot.setStatus("grabbingStellage");
+                            }
+                        }
+                        break;
+
+                    case "grabbingStellage":
+                        if(robot.getIsAtTarget()){
+                            robot.setStellage(robot.getTargetStellage());
+                            freeStellageTarget(robot.getStellage());
+                            robot.getStellage().setStatus("attached");
+                            robot.setTarget(getFirstFreeOrderPosition());
+                            robot.setStatus("toRequest");
+                        }
+                        break;
+
+                    case "toRequest":
+                        if(robot.getIsAtTarget()){
+                            robot.setTimer(System.currentTimeMillis());
+                            robot.setStatus("awaitingOrderPicker");
+                        }
+                        break;
+
+                    case "done":
+                        reservedOrderRobots.remove(robot);
+                        freeOrderPosition(robot);
+                        robot.setTarget(getFirstStellageTarget());
+                        robot.setStatus("addingStellages");
+                        break;
                 }
             }
         }
@@ -181,10 +224,10 @@ public class World implements Model{
                     for(Robot robot : robotList){
                         switch(robot.getStatus()){
                             case "idle":
-                                if(truck.getStellageCount() > reservedRobots.size()){
+                                if(truck.getStellageCount() > reservedUnloadingRobots.size()){
+                                    reservedUnloadingRobots.add(robot);
                                     robot.setStatus("unloading");
                                     freeRobotTarget(robot);
-                                    reservedRobots.add(robot);
                                     robot.setTarget(dockNode);
                                 }
                                 break;
@@ -197,14 +240,6 @@ public class World implements Model{
                                     robot.setTarget(this.getFirstStellageTarget());
                                 }
                                 break;
-
-                            case "addingStellages":
-                                checkRobotTarget(robot);
-                                break;
-
-                            default:
-                                System.out.println("Non-valid robot status encountered.");
-                                break;
                         }
                     }
                 }else{
@@ -213,29 +248,66 @@ public class World implements Model{
                 break;
             case "loading":
                 //Logics
-                for(Robot robot : robotList){
-                    switch (robot.getStatus()){
-                        case "idle":
+                if(truck.getStellageCount() < truck.getMaxStellages()){
+                    for(Robot robot : robotList){
+                        switch (robot.getStatus()){
+                            case "idle":
+                                if(reservedLoadingRobots.size() < (truck.getMaxStellages() - truck.getStellageCount()) ){
+                                    reservedLoadingRobots.add(robot);
+                                    freeRobotTarget(robot);
+                                    robot.setTarget(getClosestStellage(robot, true));
+                                    robot.setStatus("loading");
+                                }
+                                break;
 
-                            break;
-                        case "addingStellages":
-                            checkRobotTarget(robot);
-                            break;
+                            case "loading":
+                                if(robot.getIsAtTarget()){
+                                    robot.setStellage(robot.getTargetStellage());
+                                    freeStellageTarget(robot.getStellage());
+                                    robot.getStellage().setStatus("attached");
+                                    robot.setTarget(dockNode);
+                                    robot.setStatus("removingStellages");
+                                }
+                                break;
+
+                            case "removingStellages":
+                                if(robot.getIsAtTarget()){
+                                    truck.addStellage(robot.getStellage());
+                                    robot.getStellage().setIsNew(true);
+                                    robot.getStellage().setTruck(truck);
+                                    robot.getStellage().setRobot(null);
+                                    robot.setStellage(null);
+                                    robot.setStatus("idle");
+                                    robot.setTarget(this.getFirstRobotTarget());
+                                    reservedLoadingRobots.remove(robot);
+                                }
+                                break;
+                        }
                     }
+                }else{
+                    for(Stellage stellage : stellageList){
+                        if(stellage.getTruck() == null){
+                            stellage.setIsNew(false);
+                        }
+                    }
+                    truck.setStatus("taking-off");
                 }
-                System.out.println("Loading");
                 break;
         }
     }
 
-    private void checkRobotTarget(Robot robot){
+    private void checkUnloadingTarget(Robot robot){
         if(robot.getIsAtTarget()){
             robot.getStellage().setStatus("stored");
+            robot.getStellage().setStorePosition(robot.getCurrentNode());
+            robot.getStellage().setIsReserved(false);
             robot.getStellage().setRobot(null);
             robot.setStellage(null);
-            reservedRobots.remove(robot);
+            reservedUnloadingRobots.remove(robot);
             robot.setStatus("idle");
-            robot.setTarget(this.getFirstRobotTarget());
+            Node storePosition = this.getFirstRobotTarget();
+            robot.setTarget(storePosition);
+            robot.setStorePosition(storePosition);
             System.out.println("Target set to FirstRobotTarget");
         }
     }
@@ -267,7 +339,74 @@ public class World implements Model{
             Node currentPos = new Node(robotPositions[i][0], robotPositions[i][1]);
             if(robot.getStorePosition().equals(currentPos)){
                 robotPositions[i][2] = 0;
+                break;
             }
         }
+    }
+
+    private void freeStellageTarget(Stellage stellage){
+        for(int i = 0; i < stellagePositions.length; i ++){
+            Node currentPos = new Node(stellagePositions[i][0], stellagePositions[i][1]);
+            if(stellage.getStorePosition().equals(currentPos)){
+                stellagePositions[i][2] = 0;
+                break;
+            }
+        }
+    }
+
+    private void freeOrderPosition(Robot robot){
+        for(int i = 0; i < requestPositions.length; i ++){
+            Node currentPos = new Node(requestPositions[i][0], requestPositions[i][1]);
+            if(robot.getCurrentNode().equals(currentPos)){
+                requestPositions[i][2] = 0;
+                break;
+            }
+        }
+    }
+
+    private Node getClosestStellage(Robot robot, boolean isOld){
+        double closestHeuristix = Double.MAX_VALUE;
+        Stellage closestStellage = null;
+        for(Stellage stellage : stellageList){
+            if(isOld){
+                if(stellage.getStatus().equals("stored") && !stellage.getIsReserved() && !stellage.getIsNew()){
+                    double currentDist = Math.abs(robot.getX() - stellage.getX()) + Math.abs(robot.getZ() - stellage.getZ());
+                    if(currentDist < closestHeuristix){
+                        closestHeuristix = currentDist;
+                        closestStellage = stellage;
+                    }
+                }
+            }else{
+                if(stellage.getStatus().equals("stored") && !stellage.getIsReserved()){
+                    double currentDist = Math.abs(robot.getX() - stellage.getX()) + Math.abs(robot.getZ() - stellage.getZ());
+                    if(currentDist < closestHeuristix){
+                        closestHeuristix = currentDist;
+                        closestStellage = stellage;
+                    }
+                }
+            }
+        }
+        closestStellage.setIsReserved(true);
+        robot.setTargetStellage(closestStellage);
+        return closestStellage.getCurrentNode();
+    }
+
+    private boolean getIsFreeOrderPosition(){
+        for(int i = 2; i >= 0; i --){
+            if(requestPositions[i][2] == 0){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Node getFirstFreeOrderPosition(){
+        for(int i = 0; i < requestPositions.length; i ++){
+            if(requestPositions[i][2] == 0){
+                requestPositions[i][2] = 1;
+                return new Node(requestPositions[i][0], requestPositions[i][1]);
+            }
+        }
+        return new Node(0 , 85);
     }
 }

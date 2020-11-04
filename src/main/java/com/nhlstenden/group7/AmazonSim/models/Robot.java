@@ -10,6 +10,7 @@ public class Robot implements Object3D, Updatable {
     private String status;
     private Stellage stellage;
     private Stellage stellageTarget;
+    private long timer;
     private Node storePosition;
     private Node nextNode;
     private Node target;
@@ -30,12 +31,16 @@ public class Robot implements Object3D, Updatable {
     }
 
     public boolean update(){
-        if((this.z > 9 && this.z < 22) && ((this.x > -82 && this.x < -76) || (this.x > 77 && this.x < 83))){
+        if(this.status.equals("awaitingOrderPicker") && (System.currentTimeMillis() - this.timer) >= 15000){
+            this.status = "done";
+        }
+
+        if((this.z > 8 && this.z < 21) && ((this.x > -82 && this.x < -76) || (this.x > 77 && this.x < 83))){
             this.rotationX = 0.158259;//(Math.PI * 2)/22;
             if((this.path.get(0).getCol() - 10) - this.z > 0){
-                this.y -= 0.064;
+                this.y -= 0.063;
             }else{
-                this.y += 0.064;
+                this.y += 0.063;
             }
         }else{
             this.rotationX = 0;
@@ -102,6 +107,7 @@ public class Robot implements Object3D, Updatable {
                             {136, 17}, {137, 17}, {138, 17}, {139, 17}, {140, 17}, {141, 17}, {142, 17}, {143, 17}, {144, 17},
                             {145, 17}, {146, 17}, {147, 17}, {148, 17}, {149, 17}, {150, 17}, {151, 17}, {152, 17}, {153, 17},
                             {154, 17}, {155, 17}, {156, 17}, {157, 17}, {158, 17},{20,17},{20,18},{159, 17},{159, 18},
+                            {160, 17}, {161,17}, {162, 17}, {163, 17}, {164, 17}, {165, 17}, {166, 17},{166, 18},
 
                             //leftside-rightramp
                             {159, 19}, {160, 19}, {161, 19}, {162, 19}, {163, 19}, {164, 19}, {165, 19}, {166, 19},
@@ -272,5 +278,13 @@ public class Robot implements Object3D, Updatable {
 
     public void setStorePosition(Node node){
         this.storePosition = node;
+    }
+
+    public void setTimer(long time){
+        this.timer = time;
+    }
+
+    public long getTimer(){
+        return this.timer;
     }
 }

@@ -14,6 +14,8 @@ export function nodegrid(columns, rows, nodesize, originX, originZ, scene) {
 }
 
 function generateTextCanvas(i, j){
+    i += 89;
+    j+= 10;
     let x = document.createElement("canvas");
     let xc = x.getContext("2d");
     x.width = x.height = 128;

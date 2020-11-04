@@ -10,12 +10,12 @@ public class Truck implements Object3D, Updatable {
     private String status;
     private int maxStellages;
 
-    private double x = 0;
-    private double y = 0.85;
-    private double z = 0;
+    private double x = 7.5;
+    private double y = -0.85;
+    private double z = -30;
 
     private double rotationX = 0;
-    private double rotationY = 0;
+    private double rotationY = (Math.PI * 2) * 0.25;
     private double rotationZ = 0;
 
     public Truck(){
@@ -27,10 +27,17 @@ public class Truck implements Object3D, Updatable {
     }
 
     public boolean update(){
-        for(Stellage stellage : stellages){
-            stellage.setX(this.x - 1);
-            stellage.setY(this.y + 2);
-            stellage.setZ(this.z);
+        if(this.status == "taking-off" && this.z > -300){
+            this.z -= 1;
+            if(this.z == -300){
+                this.status = "arriving";
+            }
+        }
+        if(this.status == "arriving" && this.z < -30){
+            this.z += 1;
+            if(this.z == -30){
+                this.status = "unloading";
+            }
         }
         return true;
     }

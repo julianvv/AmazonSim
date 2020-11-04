@@ -63,12 +63,27 @@ export function Gui(scene, directionalLight, camera, cameraControls){
             camera.rotation.z = -(Math.PI*2)/15;
             currentCamera = "cam3";
             console.log("Changed camera to Camera 3.");
+        },
+        camera4: function (){
+            if(currentCamera === "free"){
+                saveCameraLocation(camera);
+            }
+            cameraControls.enabled = false;
+            camera.position.x = -89;
+            camera.position.y = 20;
+            camera.position.z = -10;
+            camera.rotation.x = -(Math.PI * 2)/10;
+            camera.rotation.y = -((Math.PI*2)/8);
+            camera.rotation.z = -(Math.PI*2)/15;
+            currentCamera = "cam4";
+            console.log("Changed camera to Camera 4.");
         }
     }
     cameras.add(cameraObject, 'free').name('Free cam');
     cameras.add(cameraObject, 'camera1').name('Camera 1');
     cameras.add(cameraObject, 'camera2').name('Camera 2');
     cameras.add(cameraObject, 'camera3').name('Camera 3');
+    cameras.add(cameraObject, 'camera4').name('Camera 4');
 
     const sbTextureDay = cubeLoader.load([
         './textures/Skybox/side.png',
@@ -113,4 +128,10 @@ export function addAnimation(object, property){
 export function getCurrentCamera(){
     return currentCamera;
 }
+
+// function checkFreeCamera(){
+//     if(currentCamera === "free"){
+//         saveCameraLocation(camera);
+//     }
+// }
 

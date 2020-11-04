@@ -11,6 +11,7 @@ public class Stellage implements Object3D, Updatable{
     private Truck truck;
     private boolean isNew;
     private boolean isReserved;
+    private Node storePosition;
 
     private double x = 5;
     private double y = -0.84;
@@ -33,6 +34,7 @@ public class Stellage implements Object3D, Updatable{
         this.status = "truck";
         this.isNew = true;
         this.isReserved = false;
+        this.truck = truck;
     }
 
     public boolean update(){
@@ -47,7 +49,7 @@ public class Stellage implements Object3D, Updatable{
 
         if(truck != null){
             this.x = this.truck.getX();
-            this.y = this.truck.getY() - 0.15;
+            this.y = this.truck.getY() + 3.35;
             this.z = this.truck.getZ();
         }
         return true;
@@ -148,5 +150,22 @@ public class Stellage implements Object3D, Updatable{
 
     public void setIsReserved(boolean value){
         this.isReserved = value;
+    }
+
+
+    public Node getStorePosition(){
+        return this.storePosition;
+    }
+
+    public void setStorePosition(Node node){
+        this.storePosition = node;
+    }
+
+    public void setIsNew(boolean isNew){
+        this.isNew = isNew;
+    }
+
+    public boolean getIsNew(){
+        return this.isNew;
     }
 }
