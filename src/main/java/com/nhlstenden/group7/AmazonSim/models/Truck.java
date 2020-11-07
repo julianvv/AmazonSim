@@ -12,7 +12,7 @@ public class Truck implements Object3D, Updatable {
 
     private double x = 7.5;
     private double y = -0.85;
-    private double z = -30;
+    private double z = -28;
 
     private double rotationX = 0;
     private double rotationY = (Math.PI * 2) * 0.25;
@@ -33,9 +33,9 @@ public class Truck implements Object3D, Updatable {
                 this.status = "arriving";
             }
         }
-        if(this.status == "arriving" && this.z < -30){
+        if(this.status == "arriving" && this.z < -28){
             this.z += 1;
-            if(this.z == -30){
+            if(this.z >= -28){
                 this.status = "unloading";
             }
         }

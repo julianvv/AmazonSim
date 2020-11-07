@@ -28,9 +28,9 @@ export function Gui(scene, directionalLight, camera, cameraControls){
             camera.position.x = -89;
             camera.position.y = 20;
             camera.position.z = 130;
-            camera.rotation.x = -(Math.PI * 2)/10;
-            camera.rotation.y = -((Math.PI*2)/8);
-            camera.rotation.z = -(Math.PI*2)/15;
+            camera.rotation.x = -0.62831853071;
+            camera.rotation.y = -0.65539816339;
+            camera.rotation.z = -0.41887902047;
             currentCamera = "cam1";
             console.log("Changed camera to Camera 1.");
         },
@@ -43,9 +43,9 @@ export function Gui(scene, directionalLight, camera, cameraControls){
             camera.position.x = -89;
             camera.position.y = 20;
             camera.position.z = -10;
-            camera.rotation.x = -(Math.PI * 2)/10;
-            camera.rotation.y = ((Math.PI*2)/8);
-            camera.rotation.z = -(Math.PI*2)/15;
+            camera.rotation.x = 0.62831853071;
+            camera.rotation.y = -2.365106;
+            camera.rotation.z = 0.51887902047;
             currentCamera = "cam2";
             console.log("Changed camera to Camera 2.");
         },
@@ -55,12 +55,12 @@ export function Gui(scene, directionalLight, camera, cameraControls){
                 saveCameraLocation(camera);
             }
             cameraControls.enabled = false;
-            camera.position.x = -89;
+            camera.position.x = 85;
             camera.position.y = 20;
             camera.position.z = -10;
-            camera.rotation.x = -(Math.PI * 2)/10;
-            camera.rotation.y = -((Math.PI*2)/8);
-            camera.rotation.z = -(Math.PI*2)/15;
+            camera.rotation.x = 0.62831853071;
+            camera.rotation.y = 2.365106;
+            camera.rotation.z = -0.46887902047;
             currentCamera = "cam3";
             console.log("Changed camera to Camera 3.");
         },
@@ -69,12 +69,12 @@ export function Gui(scene, directionalLight, camera, cameraControls){
                 saveCameraLocation(camera);
             }
             cameraControls.enabled = false;
-            camera.position.x = -89;
+            camera.position.x = 85;
             camera.position.y = 20;
-            camera.position.z = -10;
-            camera.rotation.x = -(Math.PI * 2)/10;
-            camera.rotation.y = -((Math.PI*2)/8);
-            camera.rotation.z = -(Math.PI*2)/15;
+            camera.position.z = 130;
+            camera.rotation.x = -0.62831853071;
+            camera.rotation.y = 0.785398;
+            camera.rotation.z = 0.51887902047;
             currentCamera = "cam4";
             console.log("Changed camera to Camera 4.");
         }
@@ -128,10 +128,4 @@ export function addAnimation(object, property){
 export function getCurrentCamera(){
     return currentCamera;
 }
-
-// function checkFreeCamera(){
-//     if(currentCamera === "free"){
-//         saveCameraLocation(camera);
-//     }
-// }
 

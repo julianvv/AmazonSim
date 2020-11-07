@@ -16,21 +16,16 @@
     <script type="module">
     import * as THREE from "./three/build/three.module.js";
     import { OrbitControls } from "./three/examples/jsm/controls/OrbitControls.js";
-    import { GLTFLoader } from './three/examples/jsm/loaders/GLTFLoader.js';
     import {EffectComposer} from "./three/examples/jsm/postprocessing/EffectComposer.js ";
     import {BloomPass} from "./three/examples/jsm/postprocessing/BloomPass.js";
     import {RenderPass} from "./three/examples/jsm/postprocessing/RenderPass.js";
     import {FilmPass} from "./three/examples/jsm/postprocessing/FilmPass.js";
+    import { Gui, getCurrentCamera } from "./gui/gui.js";
+    import {addObjects} from "./addObjects.js";
+    import {addLights} from "./addLights.js";
     import { nodegrid } from "./nodeGrid.js";
-    import { Gui, addOption, addAnimation, getCurrentCamera } from "./gui/gui.js";
 
-    let cameraControls, camera, currentCamera, closeGarage, gui, mixer, mixer2, openGarage, renderer, scene, socket, truckAnimation, truckAnimation2, warehouseObject;
-    const gltfLoader = new GLTFLoader();
-
-    function parseCommand(input = "") {
-        console.log(JSON.parse(input));
-        return JSON.parse(input);
-    }
+    let cameraControls, camera, currentCamera, closeGarage, gui, lightGroup, mixer, openGarage, renderer, scene, socket, warehouseObject;
 
     window.onload = function () {
         let worldObjects = {};
@@ -72,15 +67,12 @@
 
             gui = new Gui(scene, directionalLight, camera, cameraControls);
 
-            let pointLight = new THREE.PointLight(0xFFFFFF, 1, 100, 2);
-            pointLight.position.set(-40, 20, 10);
-            pointLight.castShadow = true;
-            pointLight.shadow.normalBias = 0.1;
-            scene.add(pointLight);
-
             let light = new THREE.AmbientLight(0x404040);
             light.intensity = 2;
             scene.add(light);
+
+            lightGroup = new THREE.Group();
+            addLights(scene, lightGroup);
         }
 
         function resizeRendererToDisplaySize(renderer) {
@@ -125,178 +117,8 @@
             requestAnimationFrame(render);
         }
 
-        /*
-         * Hier wordt de socketcommunicatie geregeld. Er wordt een nieuwe websocket aangemaakt voor het webadres dat we in
-         * de server geconfigureerd hebben als connectiepunt (/connectToSimulation). Op de socket wordt een .onmessage
-         * functie geregistreerd waarmee binnenkomende berichten worden afgehandeld.
-         */
-        socket = new WebSocket("ws://" + window.location.hostname + ":" + window.location.port + "/connectToSimulation");
-        socket.onmessage = function (event) {
-            //Hier wordt het commando dat vanuit de server wordt gegeven uit elkaar gehaald
-            let command = parseCommand(event.data);
-
-            //Wanneer het commando is "object_update", dan wordt deze code uitgevoerd. Bekijk ook de servercode om dit goed te begrijpen.
-            if (command.command == "object_update") {
-                //Wanneer het object dat moet worden geupdate nog niet bestaat (komt niet voor in de lijst met worldObjects op de client),
-                //dan wordt het 3D model eerst aangemaakt in de 3D wereld.
-                if (Object.keys(worldObjects).indexOf(command.parameters.uuid) < 0) {
-
-                    if (command.parameters.type == "building") {
-                        worldObjects[command.parameters.uuid] = null;
-                        gltfLoader.load('./gltf/amazonmapv5.glb', function ( gltf ) {
-                            let warehouse = gltf.scene;
-                            warehouse.scale.set(50,50,50);
-                            console.log(warehouse);
-
-                            warehouse.position.set(command.parameters.x, command.parameters.y, command.parameters.z);
-
-                            mixer = new THREE.AnimationMixer(warehouse);
-                            openGarage = mixer.clipAction(gltf.animations[0]);
-                            openGarage.setLoop( THREE.LoopOnce);
-                            openGarage.clampWhenFinished = true;
-
-                            closeGarage = mixer.clipAction(gltf.animations[1]);
-                            closeGarage.setLoop( THREE.LoopOnce);
-                            closeGarage.clampWhenFinished = true;
-
-                            truckAnimation = mixer.clipAction(gltf.animations[2]);
-                            truckAnimation.setLoop( THREE.LoopOnce);
-                            truckAnimation.clampWhenFinished = true;
-
-                            truckAnimation2 = mixer.clipAction(gltf.animations[3]);
-                            truckAnimation2.setLoop( THREE.LoopOnce);
-                            truckAnimation2.clampWhenFinished = true;
-
-                            warehouse.traverse( function (node){
-                                    node.castShadow = true;
-                                    node.receiveShadow = true;
-                            });
-
-                            warehouseObject = {
-                                warehouse: warehouse,
-                                ceilingStatus: warehouse.children[30].visible
-                            }
-
-                            addOption(warehouseObject, 'ceilingStatus').name('Ceiling').onChange(function (){
-                                if(warehouseObject.warehouse.children[30].visible){
-                                    warehouseObject.warehouse.children[30].visible = false;
-                                    console.log('ceiling becomes false');
-                                }else{
-                                    warehouseObject.warehouse.children[30].visible = true;
-                                    console.log('ceiling becomes true');
-                                }
-                            });
-                            scene.add(warehouse);
-                            worldObjects[command.parameters.uuid] = warehouse;
-                            console.log(gltf);
-
-                            let garageObj = {
-                                open: function (){
-                                    openGarage.play();
-                                    closeGarage.stop();
-                                },
-                                close: function (){
-                                    closeGarage.play();
-                                    openGarage.stop();
-                                },
-                                truck: function (){
-                                    truckAnimation.play();
-                                    truckAnimation2.play();
-                                }
-                            }
-                            addAnimation(garageObj, 'open').name("Open");
-                            addAnimation(garageObj, 'close').name("Close");
-                            addAnimation(garageObj, 'truck').name("truck");
-                        });
-                    }
-                    //Wanneer het object een robot is, wordt de code hieronder uitgevoerd.
-                    if (command.parameters.type == "robot") {
-                        let geometry = new THREE.BoxGeometry(0.9, 0.3, 0.9);
-                        let cubeMaterials = [
-                            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/robot_side.png"), side: THREE.DoubleSide }), //LEFT
-                            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/robot_side.png"), side: THREE.DoubleSide }), //RIGHT
-                            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/robot_top.png"), side: THREE.DoubleSide }), //TOP
-                            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/robot_bottom.png"), side: THREE.DoubleSide }), //BOTTOM
-                            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/robot_front.png"), side: THREE.DoubleSide }), //FRONT
-                            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/robot_front.png"), side: THREE.DoubleSide }), //BACK
-                        ];
-
-                        let robot = new THREE.Mesh(geometry, cubeMaterials);
-                        robot.receiveShadow = true;
-                        robot.castShadow = true;
-                        robot.position.set(command.parameters.x, command.parameters.y, command.parameters.z);
-
-                        scene.add(robot);
-                        worldObjects[command.parameters.uuid] = robot;
-                    }
-
-                    if (command.parameters.type == "truck") {
-                        worldObjects[command.parameters.uuid] = null;
-                        gltfLoader.load('./gltf/AmazonTruck.glb', function (gltf){
-                            let truck = gltf.scene;
-                            truck.scale.set(2.5,2.5,2.5);
-                            truck.traverse( function (node){
-                                node.castShadow = true;
-                                node.receiveShadow = true;
-                            });
-                            truck.position.set(command.parameters.x, command.parameters.y, command.parameters.z);
-                            scene.add(truck);
-                            worldObjects[command.parameters.uuid] = truck;
-                        });
-                    }
-
-                    if (command.parameters.type == "stellage") {
-                        worldObjects[command.parameters.uuid] = null;
-                        gltfLoader.load('./gltf/stellage.glb', function (gltf){
-                           let stellage = gltf.scene;
-
-                           stellage.traverse( function (node){
-                               node.castShadow = true;
-                               node.receiveShadow = true;
-                           });
-                           stellage.position.set(command.parameters.x, command.parameters.y, command.parameters.z);
-                           scene.add(stellage);
-                           worldObjects[command.parameters.uuid] = stellage;
-                        });
-                    }
-
-                    if(command.parameters.type == "orderpicker"){
-                        worldObjects[command.parameters.uuid] = null;
-                        console.log("humaaaan")
-                        gltfLoader.load('./gltf/tposehuman.glb', function (gltf){
-                           console.log("HUMAAAAN")
-                            let orderPicker = gltf.scene;
-
-                           orderPicker.traverse( function (node){
-                               node.castShadow = true;
-                               node.receiveShadow = true;
-                            });
-                           orderPicker.position.set(command.parameters.x, command.parameters.y, command.parameters.z);
-                           orderPicker.rotation.y = command.parameters.rotationY;
-                           scene.add(orderPicker);
-                           worldObjects[command.parameters.uuid] = orderPicker;
-                        });
-                    }
-                }
-
-                /*
-                 * Deze code wordt elke update uitgevoerd. Het update alle positiegegevens van het 3D object.
-                 */
-                let object = worldObjects[command.parameters.uuid];
-
-                if(object != null){
-                object.position.x = command.parameters.x;
-                object.position.y = command.parameters.y;
-                object.position.z = command.parameters.z;
-
-                object.rotation.x = command.parameters.rotationX;
-                object.rotation.y = command.parameters.rotationY;
-                object.rotation.z = command.parameters.rotationZ;
-                }
-            }
-        }
-
         init();
+        addObjects(worldObjects, scene, lightGroup);
 
         const composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(scene,camera));
@@ -309,7 +131,7 @@
         composer.addPass(bloomPass);
 
         const filmPass = new FilmPass(
-            1,   // noise intensity
+            0.5,   // noise intensity
             0.2,  // scanline intensity
             400,    // scanline count
             true,  // grayscale
@@ -319,12 +141,15 @@
 
         render();
 
+        //Grid-systeem voor het aflezen van coördinaten
+        /*
         let columns = 4;
         let rows = 174;
         let nodesize = 0.5;
         let originx = -90;
         let originz = 72;
         nodegrid(columns, rows, nodesize,originx,originz, scene);
+         */
     }
 
     </script>
