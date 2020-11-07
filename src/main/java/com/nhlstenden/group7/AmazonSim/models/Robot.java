@@ -200,18 +200,6 @@ public class Robot implements Object3D, Updatable {
         this.z = z;
     }
 
-    public void setRotationX(double rotationX) {
-        this.rotationX = x;
-    }
-
-    public void setRotationY(double rotationY) {
-        this.rotationY = rotationY;
-    }
-
-    public void setRotationZ(double rotationZ) {
-        this.rotationZ = rotationZ;
-    }
-
     @Override
     public double getRotationX() {
         return this.rotationX;
@@ -227,12 +215,24 @@ public class Robot implements Object3D, Updatable {
         return this.rotationZ;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setRotationX(double rotationX) {
+        this.rotationX = x;
+    }
+
+    public void setRotationY(double rotationY) {
+        this.rotationY = rotationY;
+    }
+
+    public void setRotationZ(double rotationZ) {
+        this.rotationZ = rotationZ;
     }
 
     public String getStatus(){
         return this.status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public Stellage getStellage(){
