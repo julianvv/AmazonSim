@@ -11,6 +11,7 @@ import { nodegrid } from "./nodeGrid.js";
 
 let cameraControls, camera, currentCamera, gui, lightGroup, mixer, renderer, scene;
 
+
 window.onload = function () {
     let worldObjects = {};
 
@@ -59,19 +60,6 @@ window.onload = function () {
         addLights(scene, lightGroup);
     }
 
-    function resizeRendererToDisplaySize(renderer) {
-        const canvas = renderer.domElement;
-        const width = canvas.clientWidth;
-        const height = canvas.clientHeight;
-        const needResize = canvas.width !== width || canvas.height !== height;
-        if (needResize) {
-            renderer.setSize(width, height, false);
-        }
-        return needResize;
-    }
-
-
-
     let then = 0;
     function render(now) {
         now *= 0.001;
@@ -102,6 +90,7 @@ window.onload = function () {
     }
 
     init();
+    resizeRendererToDisplaySize(renderer);
     addObjects(worldObjects, scene, lightGroup);
 
     const composer = new EffectComposer(renderer);
@@ -134,4 +123,15 @@ window.onload = function () {
     let originz = 72;
     nodegrid(columns, rows, nodesize,originx,originz, scene);
         */
+}
+
+function resizeRendererToDisplaySize(renderer) {
+    const canvas = renderer.domElement;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    const needResize = canvas.width !== width || canvas.height !== height;
+    if (needResize) {
+        renderer.setSize(width, height, false);
+    }
+    return needResize;
 }
