@@ -2,7 +2,6 @@ import * as THREE from "../three/build/three.module.js";
 import { GUI } from '../three/examples/jsm/libs/dat.gui.module.js';
 import { saveCameraLocation, loadCameraLocation } from "../saveLoadCamera.js";
 const gui = new GUI();
-const animations = gui.addFolder('Animations');
 const cameras = gui.addFolder('Camera\'s');
 const options = gui.addFolder('Options');
 let currentCamera = "free";
@@ -119,10 +118,6 @@ export function Gui(scene, directionalLight, camera, cameraControls){
 
 export function addOption(object, property){
     return options.add(object, property);
-}
-
-export function addAnimation(object, property){
-    return animations.add(object, property);
 }
 
 export function getCurrentCamera(){

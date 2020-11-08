@@ -5,7 +5,7 @@
 */
 import * as THREE from "./three/build/three.module.js";
 import {GLTFLoader} from "./three/examples/jsm/loaders/GLTFLoader.js";
-import {addAnimation, addOption} from "./gui/gui.js";
+import {addOption} from "./gui/gui.js";
 const gltfLoader = new GLTFLoader();
 let socket, warehouseObject;
 

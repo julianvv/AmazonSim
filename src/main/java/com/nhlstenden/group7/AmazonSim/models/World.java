@@ -279,6 +279,7 @@ public class World implements Model{
                                     robot.setStellage(null);
                                     robot.setStatus("idle");
                                     robot.setTarget(this.getFirstRobotTarget());
+                                    robot.setStorePosition(robot.getTarget());
                                     reservedLoadingRobots.remove(robot);
                                 }
                                 break;
