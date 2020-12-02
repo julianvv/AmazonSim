@@ -72,13 +72,17 @@ window.onload = function () {
             mixer.update(deltaTime);
         }
 
-        if (resizeRendererToDisplaySize(renderer)) {
-            const canvas = renderer.domElement;
-            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+        window.addEventListener( 'resize', onWindowResize, false );
+
+        function onWindowResize(){
+
+            camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
-            composer.setSize(canvas.width, canvas.height);
-            renderer.setSize(canvas.width, canvas.height);
+
+            renderer.setSize( window.innerWidth, window.innerHeight );
+
         }
+
 
         if (currentCamera == "free"){
             renderer.render(scene, camera);
@@ -90,7 +94,6 @@ window.onload = function () {
     }
 
     init();
-    resizeRendererToDisplaySize(renderer);
     addObjects(worldObjects, scene, lightGroup);
 
     const composer = new EffectComposer(renderer);
@@ -125,13 +128,4 @@ window.onload = function () {
         */
 }
 
-function resizeRendererToDisplaySize(renderer) {
-    const canvas = renderer.domElement;
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-    const needResize = canvas.width !== width || canvas.height !== height;
-    if (needResize) {
-        renderer.setSize(width, height, false);
-    }
-    return needResize;
-}
+
